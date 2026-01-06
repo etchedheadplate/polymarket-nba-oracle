@@ -31,12 +31,12 @@ class NBAMarket(BaseModel):
         if not self.market_title:
             return self
 
-        parts = re.split(r"\s+vs\.?\s+", self.market_title, flags=re.IGNORECASE)
-        if len(parts) != 2:
+        teams = re.split(r"\s+vs\.?\s+", self.market_title, flags=re.IGNORECASE)
+        if len(teams) != 2:
             return self
 
-        self.host_team = parts[0].strip()
-        self.guest_team = parts[1].strip()
+        self.host_team = teams[0].strip()
+        self.guest_team = teams[1].strip()
         return self
 
     @model_validator(mode="after")
@@ -47,10 +47,10 @@ class NBAMarket(BaseModel):
         if "-" not in self.game_score:
             return self
 
-        left, right = self.game_score.split("-", 1)
+        guest, host = self.game_score.split("-", 1)
         try:
-            self.guest_score = int(left.strip())
-            self.host_score = int(right.strip())
+            self.guest_score = int(guest.strip())
+            self.host_score = int(host.strip())
         except ValueError:
             pass
 

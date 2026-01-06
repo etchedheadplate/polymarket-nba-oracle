@@ -46,7 +46,7 @@ class BaseNBAMarketParser(ABC):
         return pd.DataFrame([game.model_dump() for game in games])
 
 
-class LegacyNBAMarketsParser(BaseNBAMarketParser):
+class ArchiveNBAMarketsParser(BaseNBAMarketParser):
     def _build_dates_range(self) -> tuple[datetime, datetime]:
         """Dates of 2024/2025 NBA season markets"""
         start = datetime(year=2024, month=10, day=21, tzinfo=UTC)

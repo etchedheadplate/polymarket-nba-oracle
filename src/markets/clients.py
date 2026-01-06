@@ -52,7 +52,7 @@ class BasePolymarketGammaAPIClient(ABC):
             raise PolymarketClientError(f"Failed to write file {self.path}") from e
 
 
-class LegacyNBAMarketsClient(BasePolymarketGammaAPIClient):
+class ArchiveNBAMarketsClient(BasePolymarketGammaAPIClient):
     """Client for markets before 2025/2026 NBA season (search by market slug)"""
 
     @property
@@ -61,7 +61,7 @@ class LegacyNBAMarketsClient(BasePolymarketGammaAPIClient):
 
     @property
     def filename(self) -> str:
-        return "markets_legacy.json"
+        return "archive_markets_dump.json"
 
 
 class CurrentNBAMarketsClient(BasePolymarketGammaAPIClient):
@@ -73,4 +73,4 @@ class CurrentNBAMarketsClient(BasePolymarketGammaAPIClient):
 
     @property
     def filename(self) -> str:
-        return "markets_current.json"
+        return "current_markets_dump.json"
