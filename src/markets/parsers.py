@@ -9,7 +9,7 @@ import pandas as pd
 from pydantic import ValidationError
 
 from src.markets.errors import MarketParserError
-from src.markets.schemas import NBAMarket
+from src.markets.schemas import NBAMarketGameSchema
 
 
 class BaseNBAMarketParser(ABC):
@@ -25,12 +25,12 @@ class BaseNBAMarketParser(ABC):
     async def export_games_to_df(self, markets_file: Path) -> None:
         pass
 
-    def _filter_games(self, raw_games: list[dict[str, Any]]) -> list[NBAMarket]:
-        filtered: list[NBAMarket] = []
+    def _filter_games(self, raw_games: list[dict[str, Any]]) -> list[NBAMarketGameSchema]:
+        filtered: list[NBAMarketGameSchema] = []
 
         for game in raw_games:
             try:
-                market = NBAMarket.model_validate(game)
+                market = NBAMarketGameSchema.model_validate(game)
 
                 if market.game_start_date is None:
                     continue
@@ -43,7 +43,7 @@ class BaseNBAMarketParser(ABC):
 
         return filtered
 
-    def _create_df(self, games: list[NBAMarket]) -> pd.DataFrame:
+    def _create_df(self, games: list[NBAMarketGameSchema]) -> pd.DataFrame:
         return pd.DataFrame([game.model_dump() for game in games])
 
 

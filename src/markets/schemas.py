@@ -4,7 +4,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field, model_validator
 
 
-class NBAMarket(BaseModel):
+class NBAMarketGameSchema(BaseModel):
     model_config = {
         "populate_by_name": True,
         "extra": "ignore",
