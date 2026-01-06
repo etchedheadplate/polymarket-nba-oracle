@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+import aiofiles
 import pandas as pd
 from pydantic import ValidationError
 
@@ -21,7 +22,7 @@ class BaseNBAMarketParser(ABC):
         pass
 
     @abstractmethod
-    def export_games_to_df(self, markets_file: Path) -> None:
+    async def export_games_to_df(self, markets_file: Path) -> None:
         pass
 
     def _filter_games(self, raw_games: list[dict[str, Any]]) -> list[NBAMarket]:
@@ -53,10 +54,10 @@ class ArchiveNBAMarketsParser(BaseNBAMarketParser):
         end = datetime(year=2025, month=7, day=1, tzinfo=UTC)
         return start, end
 
-    def export_games_to_df(self, markets_file: Path) -> None:
+    async def export_games_to_df(self, markets_file: Path) -> None:
         try:
-            with open(markets_file) as f:
-                raw_markets = json.load(f)
+            async with aiofiles.open(markets_file) as f:
+                raw_markets = json.loads(await f.read())
                 raw_games = raw_markets[0]["events"]
                 filtered_games = self._filter_games(raw_games)
                 self.games = self._create_df(filtered_games)
@@ -71,10 +72,10 @@ class CurrentNBAMarketsParser(BaseNBAMarketParser):
         end = datetime.now(tz=UTC)
         return start, end
 
-    def export_games_to_df(self, markets_file: Path) -> None:
+    async def export_games_to_df(self, markets_file: Path) -> None:
         try:
-            with open(markets_file) as f:
-                raw_markets = json.load(f)
+            async with aiofiles.open(markets_file) as f:
+                raw_markets = json.loads(await f.read())
                 raw_games = raw_markets["events"]
                 filtered_games = self._filter_games(raw_games)
                 self.games = self._create_df(filtered_games)

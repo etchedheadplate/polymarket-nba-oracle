@@ -3,7 +3,8 @@ from abc import ABC, abstractmethod
 from datetime import date
 from pathlib import Path
 
-import requests
+import aiofiles
+import aiohttp
 
 from src.markets.errors import PolymarketClientError
 
@@ -33,21 +34,21 @@ class BasePolymarketGammaAPIClient(ABC):
         today = date.today().isoformat()
         return Path(self.dirname, f"{today}_{self.filename}")
 
-    def export_markets_to_json(self) -> None:
+    async def export_markets_to_json(self, session: aiohttp.ClientSession) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
 
         try:
-            response = requests.get(self.url, timeout=10)
-            response.raise_for_status()
-            data = response.json()
-        except requests.RequestException as e:
+            async with session.get(self.url, timeout=aiohttp.ClientTimeout(total=10)) as response:
+                response.raise_for_status()
+                data = await response.json()
+        except aiohttp.ClientError as e:
             raise PolymarketClientError(f"Request failed for {self.url}") from e
         except json.JSONDecodeError as e:
             raise PolymarketClientError(f"Invalid JSON received from {self.url}") from e
 
         try:
-            with open(self.path, "w") as f:
-                json.dump(data, f, indent=4)
+            async with aiofiles.open(self.path, "w") as f:
+                await f.write(json.dumps(data, indent=4))
         except OSError as e:
             raise PolymarketClientError(f"Failed to write file {self.path}") from e
 
