@@ -1,5 +1,5 @@
 import asyncio
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import aiohttp
 
@@ -42,7 +42,7 @@ class NBAMarketsUpdater:
                     datetime(year=2025, month=7, day=1, tzinfo=UTC),
                 )
             else:
-                dates = (latest, datetime.now(tz=UTC))
+                dates = (latest, datetime.now(tz=UTC) + timedelta(weeks=2))  # future markets for announced games
             self.dates = dates
 
     async def _parse_markets(self) -> None:
