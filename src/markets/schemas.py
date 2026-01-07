@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import UTC, datetime
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -96,4 +96,10 @@ class NBAMarketGameSchema(BaseModel):
         except ValueError:
             pass
 
+        return self
+
+    @model_validator(mode="after")
+    def make_game_start_date_aware(self):
+        if self.game_start_date and self.game_start_date.tzinfo is None:
+            self.game_start_date = self.game_start_date.replace(tzinfo=UTC)
         return self
