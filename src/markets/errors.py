@@ -4,3 +4,7 @@ class PolymarketClientError(Exception):
 
 class MarketParserError(Exception):
     pass
+
+
+class MarketLoaderError(Exception):
+    pass
