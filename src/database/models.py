@@ -5,11 +5,11 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.orm import DeclarativeBase, Mapped, Mapper, mapped_column, relationship
 
 
-class Base(DeclarativeBase):
+class BaseModel(DeclarativeBase):
     pass
 
 
-class NBAMarketGameModel(Base):
+class NBAMarketGameModel(BaseModel):
     __tablename__ = "nba_market_games"
 
     market_id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -17,7 +17,7 @@ class NBAMarketGameModel(Base):
     market_title: Mapped[str] = mapped_column(String(255), nullable=False)
 
     game_id: Mapped[int | None] = mapped_column(Integer)
-    game_start_date: Mapped[datetime | None] = mapped_column(DateTime)
+    game_start_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     game_elapsed_time: Mapped[str | None] = mapped_column(String(50))
     game_score: Mapped[str | None] = mapped_column(String(20))
     game_period: Mapped[str | None] = mapped_column(String(50))
@@ -35,7 +35,7 @@ class NBAMarketGameModel(Base):
     )
 
 
-class NBAMarketPriceModel(Base):
+class NBAMarketPriceModel(BaseModel):
     __tablename__ = "nba_market_prices"
 
     __table_args__ = (
@@ -49,7 +49,7 @@ class NBAMarketPriceModel(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     market_id: Mapped[int] = mapped_column(ForeignKey("nba_market_games.market_id", ondelete="CASCADE"), nullable=False)
 
-    recorded_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     guest_price: Mapped[float] = mapped_column(Float, nullable=False)
     host_price: Mapped[float] = mapped_column(Float, nullable=False)
 
