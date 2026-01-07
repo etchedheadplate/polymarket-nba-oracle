@@ -4,9 +4,12 @@ from pathlib import Path
 import aiohttp
 import pandas as pd
 
+from src.database.connection import async_session_maker
+from src.database.models import NBAMarketGameModel
 from src.logger import logger
 from src.markets.clients import ArchiveNBAMarketsClient, BasePolymarketGammaAPIClient, CurrentNBAMarketsClient
 from src.markets.errors import MarketParserError, PolymarketClientError
+from src.markets.loaders import BaseNBADataLoader
 from src.markets.parsers import ArchiveNBAMarketsParser, BaseNBAMarketParser, CurrentNBAMarketsParser
 
 
@@ -46,8 +49,11 @@ async def main():
             parse_markets(archive_parser, archive_json), parse_markets(current_parser, current_json)
         )
 
-        print(archive_df)
-        print(current_df)
+        async with async_session_maker() as session:
+            loader = BaseNBADataLoader(NBAMarketGameModel, session)
+            await loader.load_df_to_db(archive_df)
+            await loader.load_df_to_db(current_df)
+            await session.commit()
 
 
 if __name__ == "__main__":
