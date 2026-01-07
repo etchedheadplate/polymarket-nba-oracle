@@ -37,12 +37,12 @@ class NBAMarketsUpdater:
             repo = NBAMarketGameRepo()
             latest = await repo.get_latest_game_start_date(session)
             if latest is None:
-                dates = (  # dates of 2024/2025 NBA season markets
+                dates = (  # dates of archive 2024/2025 NBA season markets
                     datetime(year=2024, month=10, day=21, tzinfo=UTC),
                     datetime(year=2025, month=7, day=1, tzinfo=UTC),
                 )
             else:
-                dates = (latest, datetime.now(tz=UTC))  # dates of 2025/2026 and later season markets
+                dates = (latest, datetime.now(tz=UTC))
             self.dates = dates
 
     async def _parse_markets(self) -> None:
