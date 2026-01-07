@@ -38,8 +38,8 @@ class BaseNBAMarketParser(ABC):
                 if self.start_date <= market.game_start_date <= self.end_date:
                     filtered.append(market)
 
-            except (KeyError, ValidationError, ValueError) as e:
-                raise MarketParserError("Failed to parse market") from e
+            except (KeyError, ValidationError, ValueError):
+                continue
 
         return filtered
 
