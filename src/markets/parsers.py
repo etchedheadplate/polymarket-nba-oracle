@@ -14,20 +14,27 @@ from src.markets.schemas import NBAMarketGameSchema
 
 class BaseNBAMarketParser(ABC):
     def __init__(self) -> None:
-        self.start_date, self.end_date = self._build_dates_range()
         self.games: pd.DataFrame = pd.DataFrame()
-
-    @abstractmethod
-    def _build_dates_range(self) -> tuple[datetime, datetime]:
-        pass
+        self.start_date: datetime | None = None
+        self.end_date: datetime | None = None
 
     @abstractmethod
     async def export_games_to_df(self, markets_file: Path) -> None:
         pass
 
-    def _filter_games(self, raw_games: list[dict[str, Any]]) -> list[NBAMarketGameSchema]:
-        filtered: list[NBAMarketGameSchema] = []
+    def set_dates(self, start_date: datetime, end_date: datetime) -> None:
+        if start_date.tzinfo is None:
+            start_date = start_date.replace(tzinfo=UTC)
+        if end_date.tzinfo is None:
+            end_date = end_date.replace(tzinfo=UTC)
+        self.start_date = start_date
+        self.end_date = end_date
 
+    def _filter_games(self, raw_games: list[dict[str, Any]]) -> list[NBAMarketGameSchema]:
+        if self.start_date is None or self.end_date is None:
+            raise ValueError("Dates not set for parser")
+
+        filtered: list[NBAMarketGameSchema] = []
         for game in raw_games:
             try:
                 market = NBAMarketGameSchema.model_validate(game)
@@ -35,7 +42,7 @@ class BaseNBAMarketParser(ABC):
                 if market.game_start_date is None:
                     continue
 
-                if self.start_date <= market.game_start_date <= self.end_date:
+                if self.start_date < market.game_start_date <= self.end_date:
                     filtered.append(market)
 
             except (KeyError, ValidationError, ValueError):
@@ -48,13 +55,10 @@ class BaseNBAMarketParser(ABC):
 
 
 class ArchiveNBAMarketsParser(BaseNBAMarketParser):
-    def _build_dates_range(self) -> tuple[datetime, datetime]:
-        """Dates of 2024/2025 NBA season markets"""
-        start = datetime(year=2024, month=10, day=21, tzinfo=UTC)
-        end = datetime(year=2025, month=7, day=1, tzinfo=UTC)
-        return start, end
-
     async def export_games_to_df(self, markets_file: Path) -> None:
+        if self.start_date is None or self.end_date is None:
+            raise ValueError("Dates not set")
+
         try:
             async with aiofiles.open(markets_file) as f:
                 raw_markets = json.loads(await f.read())
@@ -66,13 +70,10 @@ class ArchiveNBAMarketsParser(BaseNBAMarketParser):
 
 
 class CurrentNBAMarketsParser(BaseNBAMarketParser):
-    def _build_dates_range(self) -> tuple[datetime, datetime]:
-        """Dates of 2025/2026 and later season markets"""
-        start = datetime(year=2025, month=10, day=21, tzinfo=UTC)
-        end = datetime.now(tz=UTC)
-        return start, end
-
     async def export_games_to_df(self, markets_file: Path) -> None:
+        if self.start_date is None or self.end_date is None:
+            raise ValueError("Dates not set")
+
         try:
             async with aiofiles.open(markets_file) as f:
                 raw_markets = json.loads(await f.read())
