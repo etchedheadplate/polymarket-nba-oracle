@@ -3,6 +3,41 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field, model_validator
 
+NBA_TEAMS = {
+    "PHI": "76ers",
+    "MIL": "Bucks",
+    "CHI": "Bulls",
+    "CLE": "Cavaliers",
+    "BOS": "Celtics",
+    "LAC": "Clippers",
+    "MEM": "Grizzlies",
+    "ATL": "Hawks",
+    "MIA": "Heat",
+    "CHA": "Hornets",
+    "UTA": "Jazz",
+    "SAC": "Kings",
+    "NYK": "Knicks",
+    "LAL": "Lakers",
+    "ORL": "Magic",
+    "DAL": "Mavericks",
+    "BKN": "Nets",
+    "DEN": "Nuggets",
+    "IND": "Pacers",
+    "NOP": "Pelicans",
+    "DET": "Pistons",
+    "TOR": "Raptors",
+    "HOU": "Rockets",
+    "SAS": "Spurs",
+    "PHX": "Suns",
+    "OKC": "Thunder",
+    "MIN": "Timberwolves",
+    "POR": "Blazers",
+    "GSW": "Warriors",
+    "WAS": "Wizards",
+}
+
+NBA_TEAMS_BY_NAME = {v.lower(): k for k, v in NBA_TEAMS.items()}
+
 
 class NBAMarketGameSchema(BaseModel):
     model_config = {
@@ -29,14 +64,21 @@ class NBAMarketGameSchema(BaseModel):
     @model_validator(mode="after")
     def parse_teams(self):
         if not self.market_title:
-            return self
+            raise ValueError("Empty market title")
 
         teams = re.split(r"\s+vs\.?\s+", self.market_title, flags=re.IGNORECASE)
         if len(teams) != 2:
-            return self
+            raise ValueError("Cannot parse teams from title")
 
-        self.host_team = teams[0].strip()
-        self.guest_team = teams[1].strip()
+        host_raw = teams[0].strip().lower()
+        guest_raw = teams[1].strip().lower()
+
+        try:
+            self.host_team = NBA_TEAMS_BY_NAME[host_raw]
+            self.guest_team = NBA_TEAMS_BY_NAME[guest_raw]
+        except KeyError:
+            raise ValueError("Unknown NBA team")
+
         return self
 
     @model_validator(mode="after")
