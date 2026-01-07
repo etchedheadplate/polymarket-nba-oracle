@@ -14,7 +14,6 @@ class BaseNBADataLoader:
         df = df.convert_dtypes()  # convert data to optimal nullable Pandas types
         df = df.where(pd.notna(df), None)  # replace nullable Pandas types with Python None
         records = df.to_dict(orient="records")
-        print(len(records))
 
         if not records:
             return
