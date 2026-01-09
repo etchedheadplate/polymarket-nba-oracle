@@ -19,7 +19,7 @@ async def get_dates(repo: NBAGamesRepo) -> tuple[date, date]:
                 date(year=2025, month=7, day=1),
             )
         else:
-            dates = (latest, datetime.now(tz=UTC).date() + timedelta(weeks=2))  # future games for announced games
+            dates = (latest, datetime.now(tz=UTC).date() + timedelta(weeks=2))  # future dates for announced games
     return dates
 
 
