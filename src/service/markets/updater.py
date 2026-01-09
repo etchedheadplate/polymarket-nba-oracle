@@ -1,4 +1,5 @@
 import asyncio
+from collections.abc import Sequence
 
 from src.core.loading import DataFrameLoader
 from src.core.updating import BaseDataUpdater
@@ -10,7 +11,7 @@ from src.service.markets.clients import NBAMarketsClient
 from src.service.markets.parsers import NBAMarketsParser
 
 
-async def get_event_ids(repo: NBAGamesRepo) -> list[int]:
+async def get_event_ids(repo: NBAGamesRepo) -> Sequence[int]:
     async with async_session_maker() as session:
         events = await repo.get_event_ids_without_markets(session)
         logger.info("Found '%s' events without markets", len(events))

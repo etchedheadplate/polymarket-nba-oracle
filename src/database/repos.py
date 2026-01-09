@@ -1,9 +1,10 @@
+from collections.abc import Sequence
 from datetime import date
 
-from sqlalchemy import func, select
+from sqlalchemy import exists, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database.models import NBAGamesModel
+from src.database.models import NBAGamesModel, NBAMarketsModel
 
 
 class NBAGamesRepo:
@@ -17,10 +18,8 @@ class NBAGamesRepo:
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_event_ids_without_markets(self, session: AsyncSession) -> list[int]:
-        """
-        TODO: make query which checks if row in NBAGamesModel contains NBAGamesModel.markets
-        Return List[NBAGamesModel.event_id] from rows where NBAGamesModel.markets is empty
-        """
-        events = []
-        return events
+    async def get_event_ids_without_markets(self, session: AsyncSession) -> Sequence[int]:
+        stmt = select(NBAGamesModel.event_id).where(~exists().where(NBAMarketsModel.event_id == NBAGamesModel.id))
+
+        result = await session.execute(stmt)
+        return result.scalars().all()
