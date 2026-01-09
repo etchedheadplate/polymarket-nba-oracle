@@ -37,10 +37,10 @@ class NBAGamesParser(DataFrameParser):
 
 
 class NBAGamesBySlugParser(NBAGamesParser):
-    def _extract_events(self, raw_json: Any) -> list[dict[str, Any]]:
+    def _extract_items(self, raw_json: Any) -> list[dict[str, Any]]:
         return raw_json[0]["events"]
 
 
 class NBAGamesBySeriesIdParser(NBAGamesParser):
-    def _extract_events(self, raw_json: Any) -> list[dict[str, Any]]:
+    def _extract_items(self, raw_json: Any) -> list[dict[str, Any]]:
         return raw_json["events"]
