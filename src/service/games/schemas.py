@@ -9,12 +9,7 @@ from src.service.teams import NBA_TEAMS_BY_NAME
 
 
 class NBAGameSchema(BaseJSONSchema):
-    model_config = {
-        "populate_by_name": True,
-        "extra": "ignore",
-    }
-
-    id: int | None = None
+    """Maps JSON fields to 'nba_games' model fields"""
 
     event_id: int = Field(alias="id")
     event_slug: str = Field(alias="slug")

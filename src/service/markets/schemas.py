@@ -7,12 +7,8 @@ from src.core.validation import BaseJSONSchema
 
 
 class NBAMarketSchema(BaseJSONSchema):
-    model_config = {
-        "populate_by_name": True,
-        "extra": "ignore",
-    }
+    """Maps JSON fields to 'nba_markets' model fields"""
 
-    id: int | None = None
     event_id: int | None = None
 
     market_id: int = Field(alias="id")
