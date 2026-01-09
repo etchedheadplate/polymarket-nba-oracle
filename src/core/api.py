@@ -1,7 +1,9 @@
 import json
-from abc import ABC, abstractmethod
-from datetime import date
+from abc import ABC
+from collections.abc import Mapping
 from pathlib import Path
+from typing import Any
+from urllib.parse import urlencode
 
 import aiofiles
 import aiohttp
@@ -9,34 +11,47 @@ import aiohttp
 from src.core.errors import BaseClientError
 
 
-class BasePolymarketGammaAPIClient(ABC):
-    base = "https://gamma-api.polymarket.com/"
+class BasePolymarketAPIClient(ABC):
+    base: str
     dirname = Path("temp")
+    timeout = aiohttp.ClientTimeout(total=10)
+
+    def __init__(
+        self,
+        endpoint: str,
+        filename: str,
+        params: Mapping[str, Any] | None = None,
+    ) -> None:
+        self._endpoint = endpoint
+        self._filename = filename
+        self._params = dict(params) if params else {}
 
     @property
-    @abstractmethod
     def endpoint(self) -> str:
-        pass
+        return self._endpoint
 
     @property
-    @abstractmethod
     def filename(self) -> str:
-        pass
+        return self._filename
+
+    @property
+    def params(self) -> dict[str, Any]:
+        return self._params
 
     @property
     def url(self) -> str:
-        return self.base + self.endpoint
+        if self.params:
+            return f"{self.base}{self.endpoint}?{urlencode(self.params)}"
+        return f"{self.base}{self.endpoint}"
 
     @property
     def path(self) -> Path:
-        today = date.today().isoformat()
-        return self.dirname / f"{today}_{self.filename}"
+        return self.dirname / Path(self.filename)
 
     async def dump(self, session: aiohttp.ClientSession) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
-
         try:
-            async with session.get(self.url, timeout=aiohttp.ClientTimeout(total=10)) as response:
+            async with session.get(url=self.url, timeout=self.timeout) as response:
                 response.raise_for_status()
                 data = await response.json()
         except aiohttp.ClientError as e:
@@ -49,3 +64,11 @@ class BasePolymarketGammaAPIClient(ABC):
                 await f.write(json.dumps(data, indent=4))
         except OSError as e:
             raise BaseClientError(f"Failed to write file {self.path}") from e
+
+
+class PolymarketGammaAPIClient(BasePolymarketAPIClient):
+    base = "https://gamma-api.polymarket.com/"
+
+
+class PolymarketClobAPIClient(BasePolymarketAPIClient):
+    base = "https://clob.polymarket.com/"
