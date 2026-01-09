@@ -1,25 +1,17 @@
-from src.core.api import BasePolymarketGammaAPIClient
+from collections.abc import Mapping
+from typing import Any
+
+from src.core.api import PolymarketGammaAPIClient
 
 
-class ArchiveNBAMarketsClient(BasePolymarketGammaAPIClient):
-    """Client for markets before 2025/2026 NBA season (search by market slug)"""
-
-    @property
-    def endpoint(self) -> str:
-        return "series?slug=nba"
-
-    @property
-    def filename(self) -> str:
-        return "archive_markets_dump.json"
-
-
-class CurrentNBAMarketsClient(BasePolymarketGammaAPIClient):
-    """Client for 2025/2026 and later NBA seasons markets (search by series id)"""
-
-    @property
-    def endpoint(self) -> str:
-        return "series/10345"
-
-    @property
-    def filename(self) -> str:
-        return "current_markets_dump.json"
+class NBAMarketsClient(PolymarketGammaAPIClient):
+    def __init__(
+        self,
+        event_id: int,
+        filename: str | None = None,
+        params: Mapping[str, Any] | None = None,
+    ) -> None:
+        endpoint = f"events/{event_id}"
+        if filename is None:
+            filename = f"markets/markets_event_{event_id}.json"
+        super().__init__(endpoint=endpoint, filename=filename, params=params)

@@ -1,6 +1,4 @@
 import json
-from abc import abstractmethod
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -9,67 +7,39 @@ import pandas as pd
 from pydantic import ValidationError
 
 from src.core.errors import BaseParserError
-from src.core.parsing import BaseParser
-from src.service.markets.schemas import NBAMarketGameSchema
+from src.core.parsing import DataFrameParser
+from src.service.markets.schemas import NBAMarketSchema
 
 
-class NBAMarketsParser(BaseParser):
-    def __init__(self) -> None:
+class NBAMarketsParser(DataFrameParser):
+    def __init__(self, event_id: int) -> None:
         super().__init__()
-        self.start_date: datetime | None = None
-        self.end_date: datetime | None = None
+        self.event_id = event_id
 
-    @abstractmethod
-    def _extract_games(self, raw_markets: Any) -> list[dict[str, Any]]:
-        pass
+    def _extract_markets(self, raw_json: Any) -> list[dict[str, Any]]:
+        return raw_json["markets"]
 
-    def _filter_games(self, raw_games: list[dict[str, Any]]) -> list[NBAMarketGameSchema]:
-        if self.start_date is None or self.end_date is None:
-            raise BaseParserError("Parser dates are not initialized")
-
-        filtered_games: list[NBAMarketGameSchema] = []
-        for game in raw_games:
+    def _filter_markets(self, raw_markets: list[dict[str, Any]]) -> list[NBAMarketSchema]:
+        filtered_markets: list[NBAMarketSchema] = []
+        for raw_market in raw_markets:
             try:
-                market = NBAMarketGameSchema.model_validate(game)
-
-                if market.game_start_date is None:
-                    continue
-
-                if self.start_date < market.game_start_date <= self.end_date:
-                    filtered_games.append(market)
-
+                market = NBAMarketSchema.model_validate(raw_market)
+                market.event_id = self.event_id
+                filtered_markets.append(market)
             except (KeyError, ValidationError, ValueError):
                 continue
 
-        return filtered_games
+        return filtered_markets
 
-    def _create_df(self, games: list[NBAMarketGameSchema]) -> pd.DataFrame:
-        return pd.DataFrame([game.model_dump() for game in games])
+    def _create_df(self, markets: list[NBAMarketSchema]) -> pd.DataFrame:
+        return pd.DataFrame([market.model_dump() for market in markets])
 
     async def parse(self, file: Path) -> None:
         try:
             async with aiofiles.open(file) as f:
-                raw_markets = json.loads(await f.read())
-                raw_games = self._extract_games(raw_markets)
-                filtered_games = self._filter_games(raw_games)
-                self.df = self._create_df(filtered_games)
+                raw_json = json.loads(await f.read())
+                raw_markets = self._extract_markets(raw_json)
+                filtered_markets = self._filter_markets(raw_markets)
+                self.df = self._create_df(filtered_markets)
         except (OSError, json.JSONDecodeError) as e:
             raise BaseParserError("Failed to read file") from e
-
-    def set_dates(self, start_date: datetime, end_date: datetime) -> None:
-        if start_date.tzinfo is None:
-            start_date = start_date.replace(tzinfo=UTC)
-        if end_date.tzinfo is None:
-            end_date = end_date.replace(tzinfo=UTC)
-        self.start_date = start_date
-        self.end_date = end_date
-
-
-class ArchiveNBAMarketsParser(NBAMarketsParser):
-    def _extract_games(self, raw_markets: Any) -> list[dict[str, Any]]:
-        return raw_markets[0]["events"]
-
-
-class CurrentNBAMarketsParser(NBAMarketsParser):
-    def _extract_games(self, raw_markets: Any) -> list[dict[str, Any]]:
-        return raw_markets["events"]
