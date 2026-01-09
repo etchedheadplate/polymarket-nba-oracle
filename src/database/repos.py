@@ -20,6 +20,5 @@ class NBAGamesRepo:
 
     async def get_event_ids_without_markets(self, session: AsyncSession) -> Sequence[int]:
         stmt = select(NBAGamesModel.event_id).where(~exists().where(NBAMarketsModel.event_id == NBAGamesModel.id))
-
         result = await session.execute(stmt)
         return result.scalars().all()
