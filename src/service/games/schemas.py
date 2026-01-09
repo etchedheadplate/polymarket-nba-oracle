@@ -4,7 +4,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field, model_validator
 
-from src.service.common import NBA_TEAMS_BY_NAME
+from src.service.teams import NBA_TEAMS_BY_NAME
 
 
 class NBAGameSchema(BaseModel):
