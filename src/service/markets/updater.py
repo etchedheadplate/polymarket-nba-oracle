@@ -17,7 +17,7 @@ async def get_event_ids(repo: NBAGamesRepo) -> list[int]:
     return events
 
 
-async def update():
+async def update_markets():
     events = await get_event_ids(NBAGamesRepo())
     if len(events) > 0:
         for event in events:
@@ -31,4 +31,4 @@ async def update():
 
 
 if __name__ == "__main__":
-    asyncio.run(update())
+    asyncio.run(update_markets())
