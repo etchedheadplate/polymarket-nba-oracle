@@ -1,10 +1,12 @@
 import json
 from datetime import datetime
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import Field, model_validator
+
+from src.core.validation import BaseJSONSchema
 
 
-class NBAMarketSchema(BaseModel):
+class NBAMarketSchema(BaseJSONSchema):
     model_config = {
         "populate_by_name": True,
         "extra": "ignore",

@@ -2,12 +2,13 @@ import re
 from datetime import date
 from typing import Any
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import Field, model_validator
 
+from src.core.validation import BaseJSONSchema
 from src.service.teams import NBA_TEAMS_BY_NAME
 
 
-class NBAGameSchema(BaseModel):
+class NBAGameSchema(BaseJSONSchema):
     model_config = {
         "populate_by_name": True,
         "extra": "ignore",
