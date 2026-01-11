@@ -5,6 +5,8 @@ from src.core.api import PolymarketClobAPIClient
 
 
 class NBAPricesClient(PolymarketClobAPIClient):
+    limit_requests = 1000  # https://docs.polymarket.com/quickstart/introduction/rate-limits#clob-markets-&-pricing
+
     def __init__(
         self,
         params: Mapping[str, Any],

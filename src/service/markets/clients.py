@@ -5,6 +5,8 @@ from src.core.api import PolymarketGammaAPIClient
 
 
 class NBAMarketsClient(PolymarketGammaAPIClient):
+    limit_requests = 500  # https://docs.polymarket.com/quickstart/introduction/rate-limits#gamma-api-rate-limits
+
     def __init__(
         self,
         event_id: int,
