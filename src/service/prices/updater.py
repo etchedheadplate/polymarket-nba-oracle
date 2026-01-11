@@ -31,7 +31,7 @@ async def get_clob_id_tokens(repo: NBAMarketsRepo, market_id: int) -> tuple[str,
     return tokens
 
 
-async def update_market_prices():
+async def update_prices():
     """
     Market is represented by teams token id, so it is mandatory
     to make separate calls for guest and host team token prices
@@ -70,4 +70,4 @@ async def update_market_prices():
 
 
 if __name__ == "__main__":
-    asyncio.run(update_market_prices())
+    asyncio.run(update_prices())
