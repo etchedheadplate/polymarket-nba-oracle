@@ -4,7 +4,7 @@ from src.core.validation import BaseJSONSchema
 
 
 class NBAPriceSchema(BaseJSONSchema):
-    """Maps JSON fields to 'nba_market_prices' model fields"""
+    """Maps JSON fields to 'nba_prices' model fields"""
 
     market_id: int | None = None
 

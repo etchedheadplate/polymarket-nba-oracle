@@ -53,19 +53,19 @@ class NBAMarketsModel(BaseModel):
     token_id_host: Mapped[str] = mapped_column(String(100))
 
     event: Mapped["NBAGamesModel"] = relationship(back_populates="markets")
-    prices: Mapped[list["NBAMarketPricesModel"]] = relationship(
+    prices: Mapped[list["NBAPricesModel"]] = relationship(
         back_populates="market",
         cascade="all, delete-orphan",
         lazy="selectin",
     )
 
 
-class NBAMarketPricesModel(BaseModel):
-    __tablename__ = "nba_market_prices"
+class NBAPricesModel(BaseModel):
+    __tablename__ = "nba_prices"
 
     __table_args__ = (UniqueConstraint("market_id", "timestamp", name="uq_market_price_market_ts"),)
 
-    Index("ix_market_prices_market_ts", "market_id", "timestamp")
+    Index("ix_prices_ts", "market_id", "timestamp")
 
     id: Mapped[int] = mapped_column(primary_key=True)
     market_id: Mapped[int] = mapped_column(ForeignKey("nba_markets.id", ondelete="CASCADE"), nullable=False)
@@ -77,8 +77,6 @@ class NBAMarketPricesModel(BaseModel):
     market: Mapped["NBAMarketsModel"] = relationship(back_populates="prices")
 
 
-@event.listens_for(NBAMarketPricesModel, "before_update")
-def prevent_price_update(
-    mapper: Mapper["NBAMarketPricesModel"], connection: Connection, target: "NBAMarketPricesModel"
-) -> None:
-    raise RuntimeError("NBAMarketPricesModel rows are immutable")
+@event.listens_for(NBAPricesModel, "before_update")
+def prevent_price_update(mapper: Mapper["NBAPricesModel"], connection: Connection, target: "NBAPricesModel") -> None:
+    raise RuntimeError("NBAPricesModel rows are immutable")

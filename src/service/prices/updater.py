@@ -4,7 +4,7 @@ from collections.abc import Sequence
 from src.core.loading import DataFrameLoader
 from src.core.updating import BaseDataUpdater
 from src.database.connection import async_session_maker
-from src.database.models import NBAMarketPricesModel
+from src.database.models import NBAPricesModel
 from src.database.repos import NBAMarketsRepo
 from src.logger import logger
 from src.service.prices.clients import NBAPricesClient
@@ -50,7 +50,7 @@ async def update_market_prices():
             client=NBAPricesClient(params=guest_payload),
             parser=NBAPricesParser(market_id=market, is_guest=True),
             loader_cls=DataFrameLoader,
-            model_cls=NBAMarketPricesModel,
+            model_cls=NBAPricesModel,
         )
         await guest_prices.update()
 
@@ -60,7 +60,7 @@ async def update_market_prices():
             client=NBAPricesClient(params=host_payload),
             parser=NBAPricesParser(market_id=market, is_guest=False),
             loader_cls=DataFrameLoader,
-            model_cls=NBAMarketPricesModel,
+            model_cls=NBAPricesModel,
         )
         await host_prices.update()
 
