@@ -12,7 +12,7 @@ class NBAGamesParser(DataFrameParser):
     def __init__(self, start_date: date, end_date: date) -> None:
         super().__init__()
         self.start_date = start_date
-        self.end_date = start_date
+        self.end_date = end_date
 
     @abstractmethod
     def _extract_items(self, raw_json: Any) -> list[dict[str, Any]]:
