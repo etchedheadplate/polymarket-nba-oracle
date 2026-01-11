@@ -12,7 +12,7 @@ class NBAMarketsParser(DataFrameParser):
         self.event_id = event_id
 
     def _extract_items(self, raw_json: Any) -> list[dict[str, Any]]:
-        return raw_json["markets"]
+        return raw_json.get("markets", [])
 
     def _filter_items(self, raw_items: list[dict[str, Any]]) -> list[NBAMarketSchema]:
         filtered_markets: list[NBAMarketSchema] = []
