@@ -1,5 +1,5 @@
 import asyncio
-from collections.abc import Sequence
+from collections.abc import Awaitable, Sequence
 
 from src.core.loading import DataFrameLoader
 from src.core.updating import BaseDataUpdater
@@ -33,36 +33,40 @@ async def get_clob_id_tokens(repo: NBAMarketsRepo, market_id: int) -> tuple[str,
 
 async def update_market_prices():
     """
-    Market is represented by teams token ids, so it is mandatory
+    Market is represented by teams token id, so it is mandatory
     to make separate calls for guest and host team token prices
     """
 
     markets_repo = NBAMarketsRepo()
     markets = await get_markets_ids(markets_repo)
 
+    prices_to_update: list[Awaitable[None]] = []
+
     for market in markets:
         guest, host = await get_clob_id_tokens(markets_repo, market)
         start, end = await get_market_timestamps(markets_repo, market)
 
         guest_payload = {"market": guest, "startTs": start, "endTs": end}
-
-        guest_prices = BaseDataUpdater(
-            client=NBAPricesClient(params=guest_payload),
-            parser=NBAPricesParser(market_id=market, is_guest=True),
-            loader_cls=DataFrameLoader,
-            model_cls=NBAPricesModel,
-        )
-        await guest_prices.update()
-
         host_payload = {"market": host, "startTs": start, "endTs": end}
 
-        host_prices = BaseDataUpdater(
-            client=NBAPricesClient(params=host_payload),
-            parser=NBAPricesParser(market_id=market, is_guest=False),
-            loader_cls=DataFrameLoader,
-            model_cls=NBAPricesModel,
+        prices_to_update.append(
+            BaseDataUpdater(
+                client=NBAPricesClient(params=guest_payload),
+                parser=NBAPricesParser(market_id=market, is_guest=True),
+                loader_cls=DataFrameLoader,
+                model_cls=NBAPricesModel,
+            ).update()
         )
-        await host_prices.update()
+        prices_to_update.append(
+            BaseDataUpdater(
+                client=NBAPricesClient(params=host_payload),
+                parser=NBAPricesParser(market_id=market, is_guest=False),
+                loader_cls=DataFrameLoader,
+                model_cls=NBAPricesModel,
+            ).update()
+        )
+
+    await asyncio.gather(*prices_to_update)
 
 
 if __name__ == "__main__":

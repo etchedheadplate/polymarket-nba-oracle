@@ -20,15 +20,20 @@ async def get_event_ids(repo: NBAGamesRepo) -> Sequence[int]:
 
 async def update_markets():
     events = await get_event_ids(NBAGamesRepo())
-    if len(events) > 0:
-        for event in events:
-            markets = BaseDataUpdater(
-                client=NBAMarketsClient(event_id=event),
-                parser=NBAMarketsParser(event_id=event),
-                loader_cls=DataFrameLoader,
-                model_cls=NBAMarketsModel,
-            )
-            await markets.update()
+    if not events:
+        return
+
+    markets_to_update = [
+        BaseDataUpdater(
+            client=NBAMarketsClient(event_id=event),
+            parser=NBAMarketsParser(event_id=event),
+            loader_cls=DataFrameLoader,
+            model_cls=NBAMarketsModel,
+        ).update()
+        for event in events
+    ]
+
+    await asyncio.gather(*markets_to_update)
 
 
 if __name__ == "__main__":
