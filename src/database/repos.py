@@ -21,7 +21,7 @@ class NBAGamesRepo:
 
 class NBAMarketsRepo:
     async def get_market_ids_without_prices(self, session: AsyncSession) -> Sequence[int]:
-        stmt = select()
+        stmt = select(NBAMarketsModel.id).where(~NBAMarketsModel.prices.any())
         result = await session.execute(stmt)
         return result.scalars().all()
 
