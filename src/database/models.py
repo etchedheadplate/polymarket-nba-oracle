@@ -12,7 +12,7 @@ class BaseModel(DeclarativeBase):
 class NBAGamesModel(BaseModel):
     __tablename__ = "nba_games"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
     event_id: Mapped[int] = mapped_column(Integer, unique=True, index=True)
     event_slug: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -38,7 +38,7 @@ class NBAGamesModel(BaseModel):
 class NBAMarketsModel(BaseModel):
     __tablename__ = "nba_markets"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     event_id: Mapped[int] = mapped_column(ForeignKey("nba_games.id", ondelete="CASCADE"), nullable=False)
 
     market_id: Mapped[int] = mapped_column(Integer, unique=True, index=True)
@@ -67,7 +67,7 @@ class NBAPricesModel(BaseModel):
 
     Index("ix_prices_ts", "market_id", "timestamp")
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     market_id: Mapped[int] = mapped_column(ForeignKey("nba_markets.id", ondelete="CASCADE"), nullable=False)
 
     timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
