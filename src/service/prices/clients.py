@@ -13,7 +13,7 @@ class NBAPricesClient(PolymarketClobAPIClient):
         endpoint: str = "prices-history",
         filename: str | None = None,
     ) -> None:
-        self.clob_token_id = params["clob_token_id"]
+        self.clob_token_id = params["market"]
         if filename is None:
             filename = f"prices/prices_{self.clob_token_id}.json"
         super().__init__(endpoint=endpoint, filename=filename, params=params)
