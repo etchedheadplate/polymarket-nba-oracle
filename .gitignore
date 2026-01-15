@@ -115,6 +115,7 @@ secrets.json
 .secrets.baseline
 
 .local/
+dumps/
 logs/
 tmp/
 *.tmp
