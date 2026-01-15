@@ -1,12 +1,40 @@
 import logging
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
 
-logger = logging.getLogger(__name__)
+LOG_DIR = Path("logs")
+LOG_DIR.mkdir(exist_ok=True)
+
+formatter = logging.Formatter("[%(levelname)s] %(asctime)s - %(name)s - %(message)s")
+
+logger = logging.getLogger("service")
 logger.setLevel(logging.INFO)
 
-handler = logging.StreamHandler()
-formatter = logging.Formatter("[%(levelname)s] %(asctime)s - %(message)s")
-handler.setFormatter(formatter)
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+console_handler.setFormatter(formatter)
 
-logger.addHandler(handler)
+info_file_handler = RotatingFileHandler(
+    LOG_DIR / "service.log",
+    maxBytes=10 * 1024 * 1024,
+    backupCount=5,
+    encoding="utf-8",
+)
+info_file_handler.setLevel(logging.INFO)
+info_file_handler.setFormatter(formatter)
+
+error_file_handler = RotatingFileHandler(
+    LOG_DIR / "error.log",
+    maxBytes=10 * 1024 * 1024,
+    backupCount=5,
+    encoding="utf-8",
+)
+error_file_handler.setLevel(logging.ERROR)
+error_file_handler.setFormatter(formatter)
+
+if not logger.handlers:
+    logger.addHandler(console_handler)
+    logger.addHandler(info_file_handler)
+    logger.addHandler(error_file_handler)
 
 logger.info("Service started")
