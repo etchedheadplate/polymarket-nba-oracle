@@ -13,17 +13,17 @@ class NBAGamesParser(JsonParser):
         super().__init__()
         if not start_date or not end_date:
             if by_slug:
-                self.start_date, self.end_date = (
+                self._start_date, self._end_date = (
                     date(year=2024, month=10, day=21),
                     date(year=2025, month=7, day=1),
                 )  # dates of legacy pre-2025/26 NBA season games
             else:
-                self.start_date, self.end_date = (
+                self._start_date, self._end_date = (
                     date(year=2025, month=7, day=2),
                     datetime.now(tz=UTC).date() + timedelta(weeks=2),
                 )  # 2025/26 NBA season and future announced games
         else:
-            self.start_date, self.end_date = start_date, end_date
+            self._start_date, self._end_date = start_date, end_date
         self.by_slug = by_slug
 
     def _extract(self) -> None:
@@ -39,7 +39,7 @@ class NBAGamesParser(JsonParser):
         for raw_game in self._raw_games:
             try:
                 game = NBAGameSchema.model_validate(raw_game, extra="ignore")
-                if self.start_date < game.game_date <= self.end_date:
+                if self._start_date < game.game_date <= self._end_date:
                     self.parsed_items.append(game)
             except (KeyError, ValidationError, ValueError):
                 continue
@@ -69,10 +69,10 @@ class NBAMarketsParser(JsonParser):
 class NBAPricesParser(JsonParser):
     def __init__(self, token_market_map: dict[int, int], is_guest: bool) -> None:
         super().__init__()
-        self.token_market_map = token_market_map
-        self.is_guest = is_guest
+        self._token_market_map = token_market_map
+        self._is_guest = is_guest
         self._last_price = None
-        self.same_price_timeout = 600
+        self._same_price_timeout = 600  # stop parsing if price doesn't change for _ seconds
 
     def _extract(self) -> None:
         parsed = urlparse(self._current_url)
@@ -86,7 +86,7 @@ class NBAPricesParser(JsonParser):
 
     def _validate(self) -> None:
         if self._token_id is not None:
-            market_id = self.token_market_map.get(self._token_id, None)
+            market_id = self._token_market_map.get(self._token_id, None)
             if market_id is not None:
                 for raw_price in self._raw_prices:
                     price = raw_price["p"]
@@ -96,7 +96,7 @@ class NBAPricesParser(JsonParser):
                         self._last_price = price
                         self._last_price_ts = ts
                     elif price == self._last_price:
-                        if ts - self._last_price_ts >= self.same_price_timeout:
+                        if ts - self._last_price_ts >= self._same_price_timeout:
                             break
                     else:
                         self._last_price = price
@@ -107,8 +107,8 @@ class NBAPricesParser(JsonParser):
                             {
                                 "market_id": market_id,
                                 "timestamp": ts,
-                                "price_guest": price if self.is_guest else None,
-                                "price_host": price if not self.is_guest else None,
+                                "price_guest": price if self._is_guest else None,
+                                "price_host": price if not self._is_guest else None,
                             }
                         )
                         self.parsed_items.append(price)
