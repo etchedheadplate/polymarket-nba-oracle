@@ -9,7 +9,8 @@ from src.database.models import NBAGamesModel, NBAMarketsModel
 
 class NBAGamesRepo:
     async def get_latest_game_date(self, session: AsyncSession) -> date | None:
-        stmt = select(func.max(NBAGamesModel.game_date))
+        not_started_status = "NS"
+        stmt = select(func.max(NBAGamesModel.game_date)).where(NBAGamesModel.game_status != not_started_status)
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -26,8 +27,6 @@ class NBAGamesRepo:
 
 class NBAMarketsRepo:
     async def get_markets_without_prices(self, session: AsyncSession) -> Sequence[Row[tuple[int, int, int, str, str]]]:
-        from sqlalchemy import func
-
         stmt = select(
             NBAMarketsModel.id,
             func.extract("epoch", NBAMarketsModel.market_start).label("market_start_ts"),
