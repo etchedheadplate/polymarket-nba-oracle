@@ -21,16 +21,13 @@ class JsonParser(ABC):
         self.parsed_items: list[BaseJSONSchema] = []
 
     def load(self, json_files: dict[str, Path]) -> None:
-        self._loaded_files = json_files  # workaround for prices updating
-        logger.info("Parser %s loaded %s files", self.__class__.__name__, len(self._loaded_files))
+        self._loaded_files = json_files
 
     @abstractmethod
-    def _extract(self) -> None:
-        pass
+    def _extract(self) -> None: ...
 
     @abstractmethod
-    def _validate(self) -> None:
-        pass
+    def _validate(self) -> None: ...
 
     async def parse(self) -> list[BaseJSONSchema]:
         for url, file in self._loaded_files.items():
@@ -45,5 +42,6 @@ class JsonParser(ABC):
             except (OSError, json.JSONDecodeError, KeyError, ValidationError, ValueError) as e:
                 logger.error("Failed to process data: %s", e)
                 continue
-        logger.info("Parser %s validated %s items", self.__class__.__name__, len(self.parsed_items))
+
+        logger.info("Parsed %s items from %s files", len(self.parsed_items), len(self._loaded_files))
         return self.parsed_items
