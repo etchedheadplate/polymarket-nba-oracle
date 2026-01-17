@@ -34,7 +34,7 @@ class BasePolymarketAPIClient(ABC):
         self._params: list[dict[str, Any]] = [{}] if params is None else params
         self._path = self._build_path()
         self._limiter = AsyncLimiter(self._rate_limit, self._call_period)
-        logger.info(f"Client {self.__class__.__name__} formed {len(self._endpoints) * len(self._params)} URLs")
+        logger.info(f"{self.__class__.__name__} formed {len(self._endpoints) * len(self._params)} URLs")
         self.dumped_files: dict[str, Path] = {}  # URL -> Path
 
     def _build_url(self, endpoint: str, params: dict[str, Any]) -> str:
@@ -96,11 +96,10 @@ class BasePolymarketAPIClient(ABC):
         self._path.mkdir(parents=True, exist_ok=True)
         semaphore = asyncio.Semaphore(self._max_concurrent_requests)
 
-        tasks = [
-            self._dump_one_file(endpoint, params, semaphore) for endpoint in self._endpoints for params in self._params
-        ]
+        tasks = [self._dump_one_file(e, p, semaphore) for e in self._endpoints for p in self._params]
         await asyncio.gather(*tasks)
-        logger.info("Client %s dumped %s files", self.__class__.__name__, len(self.dumped_files))
+
+        logger.info("%s dumped %s files to '%s'", self.__class__.__name__, len(self.dumped_files), self._path)
         return self.dumped_files
 
 
