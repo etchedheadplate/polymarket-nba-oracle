@@ -34,12 +34,14 @@ class BasePolymarketAPIClient(ABC):
         self._params: list[dict[str, Any]] = [{}] if params is None else params
         self._path = self._build_path()
         self._limiter = AsyncLimiter(self._rate_limit, self._call_period)
-        logger.info(f"{self.__class__.__name__} formed {len(self._endpoints) * len(self._params)} URLs")
+        self._url_count = 0
+        self._dump_count = 0
         self.dumped_files: dict[str, Path] = {}  # URL -> Path
 
     def _build_url(self, endpoint: str, params: dict[str, Any]) -> str:
         query = urlencode(params)
         base = f"{self._base.rstrip('/')}/{endpoint.lstrip('/')}" if endpoint else self._base.rstrip("/")
+        self._url_count += 1
         return base + (f"?{query}" if query else "")
 
     def _build_path(self) -> Path:
@@ -91,6 +93,7 @@ class BasePolymarketAPIClient(ABC):
             file = await self._save_file(path, data)
             if file:
                 self.dumped_files[url] = file
+                self._dump_count += 1
 
     async def dump(self) -> dict[str, Path]:
         self._path.mkdir(parents=True, exist_ok=True)
@@ -99,7 +102,7 @@ class BasePolymarketAPIClient(ABC):
         tasks = [self._dump_one_file(e, p, semaphore) for e in self._endpoints for p in self._params]
         await asyncio.gather(*tasks)
 
-        logger.info("%s dumped %s files to '%s'", self.__class__.__name__, len(self.dumped_files), self._path)
+        logger.info("Dumped %s new files from %s URLs to '%s'", self._dump_count, self._url_count, self._path)
         return self.dumped_files
 
 
