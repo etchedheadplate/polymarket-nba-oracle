@@ -11,6 +11,7 @@ class BaseModel(DeclarativeBase):
 
 class NBAGamesModel(BaseModel):
     __tablename__ = "nba_games"
+    __table_args__ = (UniqueConstraint("event_slug", name="uq_nba_games_event_slug"),)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
