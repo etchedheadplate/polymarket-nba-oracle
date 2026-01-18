@@ -1,136 +1,78 @@
 import asyncio
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
 from itertools import islice
 from typing import Any
 
-from sqlalchemy import case
-from sqlalchemy.dialects.postgresql import (
-    Insert as PostgresInsert,
-    insert,
-)
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.transform import BaseJSONSchema
+from src.core.conflicts import ConflictStrategy
+from src.core.parse import BaseJsonSchema
 from src.database.models import BaseModel
 from src.logger import logger
 
 
-def chunked(iterable: list[dict[str, Any]], size: int):
-    it = iter(iterable)
-    while chunk := list(islice(it, size)):
-        yield chunk
-
-
 class BaseLoader(ABC):
-    def __init__(self) -> None:
-        self.rowcount: int = 0
+    def __init__(
+        self, session: AsyncSession, alchemy_model: type[BaseModel], conflict_strategy: ConflictStrategy | None = None
+    ) -> None:
+        self._rowcount: int = 0
+        self._model = alchemy_model
+        self._session = session
+        self._conflict_strategy = conflict_strategy
+
+    async def _insert_batch(self, batch: list[dict[str, Any]]) -> int:
+        stmt = insert(self._model).values(batch)
+        if self._conflict_strategy:
+            stmt = self._conflict_strategy.apply(stmt)
+        result = await self._session.execute(stmt)
+        return result.rowcount or 0  # type: ignore
+
+    @staticmethod
+    def _chunk(iterable: list[dict[str, Any]], size: int):
+        it = iter(iterable)
+        while chunk := list(islice(it, size)):
+            yield chunk
 
     @abstractmethod
     async def load(self, data: Any) -> None: ...
 
 
-class SQLAlchemyLoader(BaseLoader):
-    def __init__(self, session: AsyncSession, alchemy_model: type[BaseModel]) -> None:
-        super().__init__()
-        self.model = alchemy_model
-        self.session = session
-
-    @abstractmethod
-    async def load(self, data: Any) -> None: ...
-
-
-class ConflictStrategy(ABC):
-    @abstractmethod
-    def apply(self, stmt: PostgresInsert) -> PostgresInsert: ...
-
-
-class DoNothingOnConflict(ConflictStrategy):
-    def __init__(self, index_elements: Sequence[str]):
-        self.index_elements = index_elements
-
-    def apply(self, stmt: PostgresInsert) -> PostgresInsert:
-        return stmt.on_conflict_do_nothing(index_elements=self.index_elements)
-
-
-class UpdateNonNullFields(ConflictStrategy):
-    def __init__(self, index_elements: Sequence[str], fields_to_update: Sequence[str]):
-        self.index_elements = index_elements
-        self.fields_to_update = fields_to_update
-
-    def apply(self, stmt: PostgresInsert) -> PostgresInsert:
-
-        update_dict = {
-            field: case((stmt.excluded[field].isnot(None), stmt.excluded[field]), else_=getattr(stmt.table.c, field))
-            for field in self.fields_to_update
-        }
-        return stmt.on_conflict_do_update(index_elements=self.index_elements, set_=update_dict)
-
-
-class PydanticLoader:
+class PydanticLoader(BaseLoader):
     def __init__(
         self,
         session: AsyncSession,
         alchemy_model: type[BaseModel],
+        batch_size: int,
         conflict_strategy: ConflictStrategy | None = None,
         max_concurrent_batches: int = 5,
     ):
-        self.session = session
-        self.model = alchemy_model
-        self.conflict_strategy = conflict_strategy
-        self.max_concurrent_batches = max_concurrent_batches
-        self.rowcount: int = 0
+        super().__init__(session, alchemy_model, conflict_strategy)
+        self._max_concurrent_batches = max_concurrent_batches
+        self._batch_size = batch_size
 
-    async def _insert_batch(self, batch: list[dict[str, Any]]) -> int:
-        stmt = insert(self.model).values(batch)
-        if self.conflict_strategy:
-            stmt = self.conflict_strategy.apply(stmt)
-        result = await self.session.execute(stmt)
-        return result.rowcount or 0  # type: ignore
-
-    async def load(self, data: list[BaseJSONSchema]) -> None:
+    async def load(self, data: list[BaseJsonSchema]) -> None:
         if not data:
-            logger.info("No data to load to '%s'", self.model.__tablename__)
+            logger.info("No data to load to '%s'", self._model.__tablename__)
             return
 
         records = [item.model_dump() for item in data]
-        columns_count = len(records[0])
-        max_params = 32767
-        batch_size = max(1, max_params // columns_count)
-        batches = list(chunked(records, batch_size))
-        logger.info(
-            "%s received %s items, using batch size %s (%s batches)",
-            self.__class__.__name__,
-            len(records),
-            batch_size,
-            len(batches),
-        )
+        batches = list(self._chunk(records, self._batch_size))
+        logger.info("Chunked %s items into %s batches", len(records), len(batches))
 
-        semaphore = asyncio.Semaphore(self.max_concurrent_batches)
+        semaphore = asyncio.Semaphore(self._max_concurrent_batches)
 
-        async def worker(batch: list[dict[str, Any]]):
+        async def worker(batch: list[dict[str, Any]]) -> int:
             async with semaphore:
-                rowcount = await self._insert_batch(batch)
-                return rowcount, batch
+                return await self._insert_batch(batch)
 
         try:
             results = await asyncio.gather(*(worker(batch) for batch in batches))
-            await self.session.commit()
-
-            self.rowcount = sum(r for r, _ in results)
+            await self._session.commit()
+            self._rowcount = sum(results)
         except Exception:
-            await self.session.rollback()
-            logger.exception(
-                "%s failed to commit data to '%s'",
-                self.__class__.__name__,
-                self.model.__tablename__,
-            )
+            await self._session.rollback()
+            logger.exception("Failed to commit data to '%s'", self._model.__tablename__)
             raise
-        else:
-            # self.rowcount = sum(results)
-            logger.info(
-                "%s inserted %s rows to '%s'",
-                self.__class__.__name__,
-                self.rowcount,
-                self.model.__tablename__,
-            )
+
+        logger.info("Inserted %s rows to '%s'", self._rowcount, self._model.__tablename__)
