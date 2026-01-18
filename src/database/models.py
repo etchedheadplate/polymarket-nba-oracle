@@ -5,8 +5,7 @@ from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Integer, Nume
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
-class BaseModel(DeclarativeBase):
-    pass
+class BaseModel(DeclarativeBase): ...
 
 
 class NBAGamesModel(BaseModel):
