@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal
 
-from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Integer, Numeric, String, UniqueConstraint, text
+from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, Numeric, String, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -19,8 +19,8 @@ class NBAGamesModel(BaseModel):
 
     game_id: Mapped[int | None] = mapped_column(Integer)
     game_date: Mapped[date] = mapped_column(Date, nullable=False)
-    game_status: Mapped[str] = mapped_column(String(50), nullable=False)
-    game_is_live: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
+    game_period: Mapped[str] = mapped_column(String(20), nullable=True)
+    game_status: Mapped[str] = mapped_column(String(20), nullable=False)
 
     guest_team: Mapped[str] = mapped_column(String(100), nullable=False)
     guest_score: Mapped[int | None] = mapped_column(Integer, default=None, nullable=True)
