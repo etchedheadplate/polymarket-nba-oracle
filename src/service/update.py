@@ -11,7 +11,7 @@ from src.service.parsing.parsers import NBAGamesParser, NBAMarketsParser, NBAPri
 
 async def update_games():
     strategy = UpdateNonNullFields(
-        index_elements=["event_slug"], fields_to_update=["game_status", "guest_score", "host_score"]
+        index_elements=["event_slug"], fields_to_update=["guest_score", "host_score", "game_period", "game_status"]
     )
 
     slug_flags = (True, False)
