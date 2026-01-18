@@ -73,7 +73,7 @@ class NBAMarketSchema(BaseJsonSchema):
     market_question: str = Field(alias="question")
     market_type: str = Field(default="moneyline", alias="sportsMarketType")
     market_start: datetime = Field(alias="gameStartTime")
-    market_end: datetime = Field(alias="closedTime")
+    market_end: datetime | None = Field(default=None, alias="closedTime")
 
     order_min_price: Decimal = Field(alias="orderPriceMinTickSize")
     order_min_size: float = Field(alias="orderMinSize")

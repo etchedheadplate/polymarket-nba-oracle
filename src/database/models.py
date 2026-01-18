@@ -43,7 +43,7 @@ class NBAMarketsModel(BaseModel):
     market_question: Mapped[str | None] = mapped_column(String(255), nullable=False)
     market_type: Mapped[str] = mapped_column(String(50), nullable=False)
     market_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    market_end: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    market_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     order_min_price: Mapped[Decimal] = mapped_column(Numeric(10, 6), nullable=False)
     order_min_size: Mapped[float] = mapped_column(Float, nullable=False)
