@@ -4,8 +4,8 @@ from urllib.parse import parse_qs, urlparse
 
 from pydantic import ValidationError
 
-from src.core.processing import JsonParser
-from src.service.schemas import NBAGameSchema, NBAMarketSchema, NBAPriceSchema
+from src.core.parse import JsonParser
+from src.service.parsing.schemas import NBAGameSchema, NBAMarketSchema, NBAPriceSchema
 
 
 class NBAGamesParser(JsonParser):
@@ -67,12 +67,12 @@ class NBAMarketsParser(JsonParser):
 
 
 class NBAPricesParser(JsonParser):
-    def __init__(self, token_market_map: dict[int, int], is_guest: bool) -> None:
+    def __init__(self, token_market_map: dict[int, int], is_guest: bool, same_price_timeout: int = 600) -> None:
         super().__init__()
         self._token_market_map = token_market_map
         self._is_guest = is_guest
         self._last_price = None
-        self._same_price_timeout = 600  # stop parsing if price doesn't change for _ seconds
+        self._same_price_timeout = same_price_timeout  # stop parsing if price doesn't change for _ seconds
 
     def _extract(self) -> None:
         parsed = urlparse(self._current_url)
@@ -85,32 +85,53 @@ class NBAPricesParser(JsonParser):
             self._raw_prices = self._raw_json.get("history", [])
 
     def _validate(self) -> None:
-        if self._token_id is not None:
-            market_id = self._token_market_map.get(self._token_id, None)
-            if market_id is not None:
-                for raw_price in self._raw_prices:
-                    price = raw_price["p"]
-                    ts = raw_price["t"]
+        if self._token_id is None:
+            return
 
-                    if self._last_price is None:
-                        self._last_price = price
-                        self._last_price_ts = ts
-                    elif price == self._last_price:
-                        if ts - self._last_price_ts >= self._same_price_timeout:
-                            break
-                    else:
-                        self._last_price = price
-                        self._last_price_ts = ts
+        market_id = self._token_market_map.get(self._token_id)
+        if market_id is None:
+            return
 
-                    try:
-                        price = NBAPriceSchema.model_validate(
-                            {
-                                "market_id": market_id,
-                                "timestamp": ts,
-                                "price_guest": price if self._is_guest else None,
-                                "price_host": price if not self._is_guest else None,
-                            }
-                        )
-                        self.parsed_items.append(price)
-                    except (KeyError, ValidationError, ValueError):
-                        continue
+        last_price = None
+        last_change_ts = None
+        candidate_stop_ts = None
+        parsed: list[NBAPriceSchema] = []
+
+        for raw in self._raw_prices:
+            try:
+                price = raw["p"]
+                ts = raw["t"]
+            except KeyError:
+                continue
+
+            if last_price is None:
+                last_price = price
+                last_change_ts = ts
+                continue
+
+            if price != last_price:
+                last_price = price
+                last_change_ts = ts
+                candidate_stop_ts = None
+            else:
+                if ts - last_change_ts >= self._same_price_timeout:
+                    candidate_stop_ts = last_change_ts
+
+            try:
+                parsed.append(
+                    NBAPriceSchema.model_validate(
+                        {
+                            "market_id": market_id,
+                            "timestamp": ts,
+                            "price_guest": price if self._is_guest else None,
+                            "price_host": price if not self._is_guest else None,
+                        }
+                    )
+                )
+            except (KeyError, ValidationError, ValueError):
+                continue
+
+        if candidate_stop_ts is not None:  # remove items after game ending but before market closure
+            parsed = [p for p in parsed if p.timestamp <= candidate_stop_ts]
+
+        self.parsed_items.extend(parsed)

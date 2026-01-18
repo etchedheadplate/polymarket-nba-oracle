@@ -7,45 +7,11 @@ from typing import Any
 
 from pydantic import Field, model_validator
 
-from src.core.processing import BaseJSONSchema
-
-NBA_TEAMS = {
-    "PHI": "76ers",
-    "MIL": "Bucks",
-    "CHI": "Bulls",
-    "CLE": "Cavaliers",
-    "BOS": "Celtics",
-    "LAC": "Clippers",
-    "MEM": "Grizzlies",
-    "ATL": "Hawks",
-    "MIA": "Heat",
-    "CHA": "Hornets",
-    "UTA": "Jazz",
-    "SAC": "Kings",
-    "NYK": "Knicks",
-    "LAL": "Lakers",
-    "ORL": "Magic",
-    "DAL": "Mavericks",
-    "BKN": "Nets",
-    "DEN": "Nuggets",
-    "IND": "Pacers",
-    "NOP": "Pelicans",
-    "DET": "Pistons",
-    "TOR": "Raptors",
-    "HOU": "Rockets",
-    "SAS": "Spurs",
-    "PHX": "Suns",
-    "OKC": "Thunder",
-    "MIN": "Timberwolves",
-    "POR": "Blazers",
-    "GSW": "Warriors",
-    "WAS": "Wizards",
-}
-
-NBA_TEAMS_BY_NAME = {v.lower(): k for k, v in NBA_TEAMS.items()}
+from src.core.parse import BaseJsonSchema
+from src.service.parsing.teams import NBA_TEAMS_BY_NAME
 
 
-class NBAGameSchema(BaseJSONSchema):
+class NBAGameSchema(BaseJsonSchema):
     """Maps JSON fields to 'nba_games' model fields"""
 
     id: int | None = None
@@ -98,7 +64,7 @@ class NBAGameSchema(BaseJSONSchema):
         return values
 
 
-class NBAMarketSchema(BaseJSONSchema):
+class NBAMarketSchema(BaseJsonSchema):
     """Maps JSON fields to 'nba_markets' model fields"""
 
     id: int | None = None
@@ -145,7 +111,7 @@ class NBAMarketSchema(BaseJSONSchema):
         return values
 
 
-class NBAPriceSchema(BaseJSONSchema):
+class NBAPriceSchema(BaseJsonSchema):
     """Maps JSON fields to 'nba_prices' model fields"""
 
     market_id: int | None = None

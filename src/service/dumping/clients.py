@@ -3,7 +3,7 @@ from urllib.parse import urljoin
 
 import aiohttp
 
-from src.core.api import PolymarketClobAPIClient, PolymarketGammaAPIClient
+from src.core.dump import PolymarketClobAPIClient, PolymarketGammaAPIClient
 
 
 class NBAGamesClient(PolymarketGammaAPIClient):
