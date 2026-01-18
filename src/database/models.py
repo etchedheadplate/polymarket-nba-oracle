@@ -36,6 +36,7 @@ class NBAGamesModel(BaseModel):
 
 class NBAMarketsModel(BaseModel):
     __tablename__ = "nba_markets"
+    __table_args__ = (UniqueConstraint("event_id", "market_question", name="uq_nba_markets_event_question"),)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     event_id: Mapped[int] = mapped_column(ForeignKey("nba_games.id", ondelete="CASCADE"), nullable=False)

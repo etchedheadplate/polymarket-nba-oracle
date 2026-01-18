@@ -1,6 +1,6 @@
 import aiohttp
 
-from src.core.conflicts import DoNothingOnConflict, UpdateNonNullFields
+from src.core.conflicts import UpdateNonNullFields
 from src.core.load import PydanticLoader
 from src.database.connection import async_session_maker
 from src.database.models import NBAGamesModel, NBAMarketsModel, NBAPricesModel
@@ -33,7 +33,7 @@ async def update_games():
 
 
 async def update_markets():
-    strategy = DoNothingOnConflict(index_elements=["id"])
+    strategy = UpdateNonNullFields(index_elements=["event_id", "market_question"], fields_to_update=["market_end"])
 
     endpoints = await construct_market_endpoints()
     if not endpoints:
