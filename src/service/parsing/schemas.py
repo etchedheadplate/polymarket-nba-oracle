@@ -8,7 +8,7 @@ from typing import Any
 from pydantic import Field, model_validator
 
 from src.core.parse import BaseJsonSchema
-from src.service.parsing.teams import NBA_TEAMS_BY_NAME
+from src.service.parsing.normalization import GAME_STATUS_NORMALIZATION_MAP, GameStatus, MarketType, NBATeam
 
 
 class NBAGameSchema(BaseJsonSchema):
@@ -20,39 +20,20 @@ class NBAGameSchema(BaseJsonSchema):
 
     game_id: int | None = Field(default=None, alias="gameId")
     game_date: date = Field(alias="eventDate")
-    game_status: str = Field(alias="period")
-    game_is_live: bool = Field(default=False, alias="live")
+    game_period: str = Field(alias="period")
+    game_status: GameStatus
 
-    guest_team: str | None = None
+    guest_team: NBATeam | None = None
+    host_team: NBATeam | None = None
+
     guest_score: int | None = None
-    host_team: str | None = None
     host_score: int | None = None
 
-    @model_validator(mode="after")
-    def parse_teams(self):
-        if not self.event_title:
-            raise ValueError("Empty event title")
-
-        teams = re.split(r"\s+vs\.?\s+", self.event_title, flags=re.IGNORECASE)
-        if len(teams) != 2:
-            raise ValueError("Cannot split teams from title")
-
-        guest_raw = teams[0].strip().lower()
-        host_raw = teams[1].strip().lower()
-
-        self.guest_team = None
-        self.host_team = None
-
-        for name, code in NBA_TEAMS_BY_NAME.items():
-            if name in guest_raw:
-                self.guest_team = code
-            if name in host_raw:
-                self.host_team = code
-
-        if not self.guest_team or not self.host_team:
-            raise ValueError(f"Failed to parse teams from title: '{self.event_title}'")
-
-        return self
+    @model_validator(mode="before")
+    def create_game_status(cls, values: dict[str, Any]):
+        raw_period = values.get("period", "")
+        values["game_status"] = GAME_STATUS_NORMALIZATION_MAP.get(raw_period, GameStatus.UNKNOWN)
+        return values
 
     @model_validator(mode="before")
     def parse_score(cls, values: dict[str, Any]):
@@ -63,6 +44,32 @@ class NBAGameSchema(BaseJsonSchema):
             values["host_score"] = int(host.strip())
         return values
 
+    @model_validator(mode="after")
+    def parse_teams(self):
+        if not self.event_title:
+            raise ValueError("Empty event title")
+
+        teams = re.split(r"\s+vs\.?\s+", self.event_title, flags=re.IGNORECASE)
+        if len(teams) != 2:
+            raise ValueError(f"Cannot split teams from title: '{self.event_title}'")
+
+        guest_raw = teams[0].strip().lower()
+        host_raw = teams[1].strip().lower()
+
+        self.guest_team = None
+        self.host_team = None
+
+        for team in NBATeam:
+            if team.value.lower() in guest_raw:
+                self.guest_team = team
+            if team.value.lower() in host_raw:
+                self.host_team = team
+
+        if not self.guest_team or not self.host_team:
+            raise ValueError(f"Failed to parse teams from title: '{self.event_title}'")
+
+        return self
+
 
 class NBAMarketSchema(BaseJsonSchema):
     """Maps JSON fields to 'nba_markets' model fields"""
@@ -71,7 +78,7 @@ class NBAMarketSchema(BaseJsonSchema):
     event_id: int | None = None
 
     market_question: str = Field(alias="question")
-    market_type: str = Field(default="moneyline", alias="sportsMarketType")
+    market_type: MarketType = Field(default=MarketType.moneyline, alias="sportsMarketType")
     market_start: datetime = Field(alias="gameStartTime")
     market_end: datetime | None = Field(default=None, alias="closedTime")
 
