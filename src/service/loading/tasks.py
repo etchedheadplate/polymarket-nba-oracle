@@ -19,8 +19,9 @@ async def construct_game_dates() -> tuple[date | None, date | None]:
 
 async def construct_market_endpoints() -> list[str]:
     async with async_session_maker() as session:
-        events = await NBAGamesRepo().get_event_ids_without_markets(session)
-
+        events_without_markets = await NBAGamesRepo().get_event_ids_without_markets(session)
+        events_with_open_markets = await NBAGamesRepo().get_event_ids_with_open_markets(session)
+    events = set(events_without_markets) | set(events_with_open_markets)
     endpoints = [str(event) for event in events] if events else []
     return endpoints
 

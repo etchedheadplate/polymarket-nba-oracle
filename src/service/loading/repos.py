@@ -24,6 +24,19 @@ class NBAGamesRepo:
         result = await session.execute(stmt)
         return result.scalars().all()
 
+    async def get_event_ids_with_open_markets(self, session: AsyncSession) -> Sequence[int]:
+        today = datetime.now().date()
+        stmt = (
+            select(NBAGamesModel.id)
+            .where(
+                exists().where((NBAMarketsModel.event_id == NBAGamesModel.id) & (NBAMarketsModel.market_end.is_(None)))
+            )
+            .where(NBAGamesModel.game_date <= today)
+        )
+
+        result = await session.execute(stmt)
+        return result.scalars().all()
+
 
 class NBAMarketsRepo:
     async def get_markets_without_prices(self, session: AsyncSession) -> Sequence[Row[tuple[int, int, int, str, str]]]:
