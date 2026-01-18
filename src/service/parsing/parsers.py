@@ -4,6 +4,7 @@ from urllib.parse import parse_qs, urlparse
 
 from pydantic import ValidationError
 
+from logger import logger
 from src.core.parse import JsonParser
 from src.service.parsing.schemas import NBAGameSchema, NBAMarketSchema, NBAPriceSchema
 
@@ -41,8 +42,8 @@ class NBAGamesParser(JsonParser):
                 game = NBAGameSchema.model_validate(raw_game, extra="ignore")
                 if self._start_date < game.game_date <= self._end_date:
                     self.parsed_items.append(game)
-            except (KeyError, ValidationError, ValueError):
-                continue
+            except (KeyError, ValidationError, ValueError) as e:
+                logger.error(e)
 
 
 class NBAMarketsParser(JsonParser):
@@ -62,8 +63,8 @@ class NBAMarketsParser(JsonParser):
                     market = NBAMarketSchema.model_validate(raw_market, extra="ignore")
                     market.event_id = int(self._event_id)
                     self.parsed_items.append(market)
-                except (KeyError, ValidationError, ValueError):
-                    continue
+                except (KeyError, ValidationError, ValueError) as e:
+                    logger.error(e)
 
 
 class NBAPricesParser(JsonParser):
@@ -98,10 +99,9 @@ class NBAPricesParser(JsonParser):
         parsed: list[NBAPriceSchema] = []
 
         for raw in self._raw_prices:
-            try:
-                price = raw["p"]
-                ts = raw["t"]
-            except KeyError:
+            price = raw.get("p", None)
+            ts = raw.get("t", None)
+            if price is None or ts is None:
                 continue
 
             if last_price is None:

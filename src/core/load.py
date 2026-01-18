@@ -72,7 +72,7 @@ class PydanticLoader(BaseLoader):
             self._rowcount = sum(results)
         except Exception:
             await self._session.rollback()
-            logger.exception("Failed to commit data to '%s'", self._model.__tablename__)
+            logger.error("Failed to commit data to '%s'", self._model.__tablename__)
             raise
 
         logger.info("Inserted %s rows to '%s'", self._rowcount, self._model.__tablename__)

@@ -62,7 +62,7 @@ class BasePolymarketAPIClient(ABC):
                     response.raise_for_status()
                     return await response.json()
             except (TimeoutError, aiohttp.ClientError) as e:
-                logger.warning("Request failed (%s), attempt %s/%s: %s", url, attempt + 1, retries, e)
+                logger.error("Request failed (%s), attempt %s/%s: %s", url, attempt + 1, retries, e)
                 await asyncio.sleep(2**attempt)
         logger.error("Failed to fetch data after %s attempts: %s", retries, url)
         return None
