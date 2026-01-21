@@ -23,8 +23,8 @@ class NBAGameSchema(BaseJsonSchema):
     game_period: str = Field(alias="period")
     game_status: GameStatus
 
-    guest_team: NBATeam | None = None
-    host_team: NBATeam | None = None
+    guest_team: str | None = None
+    host_team: str | None = None
 
     guest_score: int | None = None
     host_score: int | None = None
@@ -61,9 +61,9 @@ class NBAGameSchema(BaseJsonSchema):
 
         for team in NBATeam:
             if team.value.lower() in guest_raw:
-                self.guest_team = team
+                self.guest_team = team.name
             if team.value.lower() in host_raw:
-                self.host_team = team
+                self.host_team = team.name
 
         if not self.guest_team or not self.host_team:
             raise ValueError(f"Failed to parse teams from title: '{self.event_title}'")
