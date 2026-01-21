@@ -12,7 +12,7 @@ from aiolimiter import AsyncLimiter
 from src.logger import logger
 
 
-class BasePolymarketAPIClient(ABC):
+class BasePolymarketOracleAPIClient(ABC):
     _base: str
     _dirname = "dumps"
     _subdirname: str
@@ -106,11 +106,11 @@ class BasePolymarketAPIClient(ABC):
         return self.dumped_files
 
 
-class PolymarketGammaAPIClient(BasePolymarketAPIClient):
+class PolymarketOracleGammaAPIClient(BasePolymarketOracleAPIClient):
     _base = "https://gamma-api.polymarket.com/"
     _call_period = 10.0
 
 
-class PolymarketClobAPIClient(BasePolymarketAPIClient):
+class PolymarketOracleClobAPIClient(BasePolymarketOracleAPIClient):
     _base = "https://clob.polymarket.com/"
     _call_period = 10.0

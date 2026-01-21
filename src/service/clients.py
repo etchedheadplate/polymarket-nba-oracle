@@ -3,10 +3,10 @@ from urllib.parse import urljoin
 
 import aiohttp
 
-from src.core.clients import PolymarketClobAPIClient, PolymarketGammaAPIClient
+from src.core.clients import PolymarketOracleClobAPIClient, PolymarketOracleGammaAPIClient
 
 
-class NBAGamesClient(PolymarketGammaAPIClient):
+class NBAGamesClient(PolymarketOracleGammaAPIClient):
     _subdirname = "games"
     _file_prefix = "series"
     _file_rewrite = True
@@ -20,7 +20,7 @@ class NBAGamesClient(PolymarketGammaAPIClient):
         self._base = urljoin(self._base, "series/")
 
 
-class NBAMarketsClient(PolymarketGammaAPIClient):
+class NBAMarketsClient(PolymarketOracleGammaAPIClient):
     _subdirname = "markets"
     _file_prefix = "event"
     _file_rewrite = True
@@ -31,7 +31,7 @@ class NBAMarketsClient(PolymarketGammaAPIClient):
         self._base = urljoin(self._base, "events/")
 
 
-class NBAPricesClient(PolymarketClobAPIClient):
+class NBAPricesClient(PolymarketOracleClobAPIClient):
     _subdirname = "prices"
     _file_prefix = "token"
     _file_rewrite = False
