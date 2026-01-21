@@ -2,7 +2,7 @@ from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 from src.database.connection import async_session_maker
-from src.service.loading.repos import NBAGamesRepo, NBAMarketsRepo
+from src.service.repos import NBAGamesRepo, NBAMarketsRepo
 
 
 async def construct_game_dates() -> tuple[date | None, date | None]:
