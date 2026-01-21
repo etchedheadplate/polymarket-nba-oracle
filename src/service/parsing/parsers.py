@@ -4,8 +4,8 @@ from urllib.parse import parse_qs, urlparse
 
 from pydantic import ValidationError
 
-from logger import logger
 from src.core.parse import JsonParser
+from src.logger import logger
 from src.service.parsing.schemas import NBAGameSchema, NBAMarketSchema, NBAPriceSchema
 
 
