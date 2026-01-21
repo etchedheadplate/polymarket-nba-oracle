@@ -8,7 +8,7 @@ LOG_DIR.mkdir(exist_ok=True)
 formatter = logging.Formatter("[%(levelname)s] %(asctime)s - %(name)s - %(message)s")
 
 logger = logging.getLogger("service")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.INFO)
@@ -23,6 +23,15 @@ info_file_handler = RotatingFileHandler(
 info_file_handler.setLevel(logging.INFO)
 info_file_handler.setFormatter(formatter)
 
+debug_file_handler = RotatingFileHandler(
+    LOG_DIR / "debug.log",
+    maxBytes=10 * 1024 * 1024,
+    backupCount=5,
+    encoding="utf-8",
+)
+debug_file_handler.setLevel(logging.DEBUG)
+debug_file_handler.setFormatter(formatter)
+
 error_file_handler = RotatingFileHandler(
     LOG_DIR / "error.log",
     maxBytes=10 * 1024 * 1024,
@@ -35,6 +44,8 @@ error_file_handler.setFormatter(formatter)
 if not logger.handlers:
     logger.addHandler(console_handler)
     logger.addHandler(info_file_handler)
+    logger.addHandler(debug_file_handler)
     logger.addHandler(error_file_handler)
 
 logger.info("Service started")
+logger.error("Something went wrong")
