@@ -2,7 +2,7 @@ from datetime import UTC, date, datetime, timedelta
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
-from src.core.parse import JsonParser
+from src.core.parsers import JsonParser
 from src.service.schemas import NBAGameSchema, NBAMarketSchema, NBAPriceSchema
 
 

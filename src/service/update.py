@@ -1,7 +1,7 @@
 import aiohttp
 
 from src.core.conflicts import UpdateNonNullFields
-from src.core.load import PydanticLoader
+from src.core.loaders import PydanticLoader
 from src.database.connection import async_session_maker
 from src.database.models import NBAGamesModel, NBAMarketsModel, NBAPricesModel
 from src.service.clients import NBAGamesClient, NBAMarketsClient, NBAPricesClient

@@ -7,7 +7,7 @@ from typing import Any
 
 from pydantic import Field, model_validator
 
-from src.core.parse import BaseJsonSchema
+from src.core.parsers import BaseJsonSchema
 from src.service.domain import GAME_STATUS_NORMALIZATION_MAP, GameStatus, MarketType, NBATeam
 
 
