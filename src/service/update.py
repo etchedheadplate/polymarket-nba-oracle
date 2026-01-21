@@ -4,9 +4,9 @@ from src.core.conflicts import UpdateNonNullFields
 from src.core.load import PydanticLoader
 from src.database.connection import async_session_maker
 from src.database.models import NBAGamesModel, NBAMarketsModel, NBAPricesModel
-from src.service.dumping.clients import NBAGamesClient, NBAMarketsClient, NBAPricesClient
-from src.service.loading.tasks import construct_game_dates, construct_market_endpoints, construct_prices_payload
-from src.service.parsing.parsers import NBAGamesParser, NBAMarketsParser, NBAPricesParser
+from src.service.clients import NBAGamesClient, NBAMarketsClient, NBAPricesClient
+from src.service.parsers import NBAGamesParser, NBAMarketsParser, NBAPricesParser
+from src.service.tasks import construct_game_dates, construct_market_endpoints, construct_prices_payload
 
 
 async def update_games():
