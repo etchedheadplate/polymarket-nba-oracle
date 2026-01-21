@@ -39,8 +39,10 @@ class JsonParser(ABC):
                     self._raw_json = json.loads(await f.read())
                     self._extract()
                     self._validate()
-            except (OSError, json.JSONDecodeError, KeyError, ValidationError, ValueError) as e:
-                logger.error("Failed to process data: %s", e)
+            except ValidationError as e:
+                logger.debug("Validation skipped: %s", e)
+            except Exception:
+                logger.exception("Unexpected error")
                 continue
 
         logger.info("Parsed %s items from %s files", len(self.parsed_items), len(self._ingested_data))
