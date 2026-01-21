@@ -35,9 +35,12 @@ class NBAGamesParser(JsonParser):
 
     def _validate(self) -> None:
         for raw_game in self._raw_games:
-            game = NBAGameSchema.model_validate(raw_game, extra="ignore")
-            if self._start_date < game.game_date <= self._end_date:
-                self.parsed_items.append(game)
+            try:
+                game = NBAGameSchema.model_validate(raw_game, extra="ignore")
+                if self._start_date < game.game_date <= self._end_date:
+                    self.parsed_items.append(game)
+            except (KeyError, ValueError):
+                continue
 
 
 class NBAMarketsParser(JsonParser):
@@ -53,9 +56,12 @@ class NBAMarketsParser(JsonParser):
     def _validate(self) -> None:
         if self._event_id is not None:
             for raw_market in self._raw_markets:
-                market = NBAMarketSchema.model_validate(raw_market, extra="ignore")
-                market.event_id = int(self._event_id)
-                self.parsed_items.append(market)
+                try:
+                    market = NBAMarketSchema.model_validate(raw_market, extra="ignore")
+                    market.event_id = int(self._event_id)
+                    self.parsed_items.append(market)
+                except (KeyError, ValueError):
+                    continue
 
 
 class NBAPricesParser(JsonParser):
@@ -92,34 +98,37 @@ class NBAPricesParser(JsonParser):
 
         parsed: list[NBAPriceSchema] = []
         for raw in self._raw_prices:
-            price = raw.get("p", None)
-            ts = raw.get("t", None)
-            if price is None or ts is None:
-                continue
+            try:
+                price = raw.get("p", None)
+                ts = raw.get("t", None)
+                if price is None or ts is None:
+                    continue
 
-            if last_price is None:
-                last_price = price
-                last_change_ts = ts
-                continue
+                if last_price is None:
+                    last_price = price
+                    last_change_ts = ts
+                    continue
 
-            if price != last_price:
-                last_price = price
-                last_change_ts = ts
-                candidate_stop_ts = None
-            else:
-                if ts - last_change_ts >= self._same_price_timeout:
-                    candidate_stop_ts = last_change_ts  # update candidate with latest price change pause window
+                if price != last_price:
+                    last_price = price
+                    last_change_ts = ts
+                    candidate_stop_ts = None
+                else:
+                    if ts - last_change_ts >= self._same_price_timeout:
+                        candidate_stop_ts = last_change_ts  # update candidate with latest price change pause window
 
-            parsed.append(
-                NBAPriceSchema.model_validate(
-                    {
-                        "market_id": market_id,
-                        "timestamp": ts,
-                        "price_guest": price if self._is_guest else None,
-                        "price_host": price if not self._is_guest else None,
-                    }
+                parsed.append(
+                    NBAPriceSchema.model_validate(
+                        {
+                            "market_id": market_id,
+                            "timestamp": ts,
+                            "price_guest": price if self._is_guest else None,
+                            "price_host": price if not self._is_guest else None,
+                        }
+                    )
                 )
-            )
+            except (KeyError, ValueError):
+                continue
 
         if candidate_stop_ts is not None:  # remove items after latest candidate (game ended, market yet not closed)
             parsed = [p for p in parsed if p.timestamp <= candidate_stop_ts]
