@@ -48,4 +48,3 @@ if not logger.handlers:
     logger.addHandler(error_file_handler)
 
 logger.info("Service started")
-logger.error("Something went wrong")
