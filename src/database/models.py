@@ -69,7 +69,9 @@ class NBAPricesModel(BaseModel):
     market_id: Mapped[int] = mapped_column(ForeignKey("nba_markets.id", ondelete="CASCADE"), nullable=False)
 
     timestamp: Mapped[int] = mapped_column(Integer, nullable=False, doc="Unix timestamp (seconds, UTC)")
-    price_guest: Mapped[Decimal] = mapped_column(Numeric(10, 6), nullable=True)
-    price_host: Mapped[Decimal] = mapped_column(Numeric(10, 6), nullable=True)
+    price_guest_buy: Mapped[Decimal] = mapped_column(Numeric(10, 6), nullable=True)
+    price_guest_sell: Mapped[Decimal] = mapped_column(Numeric(10, 6), nullable=True)
+    price_host_buy: Mapped[Decimal] = mapped_column(Numeric(10, 6), nullable=True)
+    price_host_sell: Mapped[Decimal] = mapped_column(Numeric(10, 6), nullable=True)
 
     market: Mapped["NBAMarketsModel"] = relationship(back_populates="prices")
