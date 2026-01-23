@@ -58,6 +58,11 @@ class NBAMarketsModel(BaseModel):
         cascade="all, delete-orphan",
         lazy="selectin",
     )
+    orders: Mapped[list["NBAOrdersModel"]] = relationship(
+        back_populates="market",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
 
 
 class NBAPricesModel(BaseModel):
@@ -75,3 +80,30 @@ class NBAPricesModel(BaseModel):
     price_host_sell: Mapped[Decimal] = mapped_column(Numeric(10, 6), nullable=True)
 
     market: Mapped["NBAMarketsModel"] = relationship(back_populates="prices")
+
+
+class NBAOrdersModel(BaseModel):
+    __tablename__ = "market_orders"
+
+    __table_args__ = (
+        UniqueConstraint("market_id", "order_id", "ts_created", name="uq_market_orders_market_order_ts_created"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    market_id: Mapped[int] = mapped_column(ForeignKey("event_markets.id", ondelete="CASCADE"), nullable=False)
+    order_id: Mapped[str] = mapped_column(String(100), nullable=False)
+
+    strategy: Mapped[str] = mapped_column(String(50), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
+
+    side: Mapped[str] = mapped_column(String(5), nullable=False)
+    price: Mapped[Decimal] = mapped_column(Numeric(10, 6), nullable=False)
+    size: Mapped[Decimal] = mapped_column(Numeric(10, 6), nullable=False)
+    filled: Mapped[Decimal] = mapped_column(Numeric(10, 6), nullable=True)
+    ts_expiration: Mapped[int] = mapped_column(Integer, nullable=True, doc="Unix timestamp (seconds, UTC)")
+
+    ts_created: Mapped[int] = mapped_column(Integer, nullable=False, doc="Unix timestamp (seconds, UTC)")
+    ts_updated: Mapped[int] = mapped_column(Integer, nullable=True, doc="Unix timestamp (seconds, UTC)")
+    ts_canceled: Mapped[int] = mapped_column(Integer, nullable=True, doc="Unix timestamp (seconds, UTC)")
+
+    market: Mapped["NBAMarketsModel"] = relationship(back_populates="orders")
