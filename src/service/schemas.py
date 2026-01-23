@@ -124,5 +124,5 @@ class NBAPriceSchema(BaseJsonSchema):
     market_id: int | None = None
 
     timestamp: int = Field(alias="timestamp")
-    price_guest: Decimal | None = Field(default=None, alias="price_guest")
-    price_host: Decimal | None = Field(default=None, alias="price_host")
+    price_guest_buy: Decimal | None = Field(default=None, alias="price_guest_buy")
+    price_host_buy: Decimal | None = Field(default=None, alias="price_host_buy")

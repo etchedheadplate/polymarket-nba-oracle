@@ -122,8 +122,8 @@ class NBAPricesParser(JsonParser):
                         {
                             "market_id": market_id,
                             "timestamp": ts,
-                            "price_guest": price if self._is_guest else None,
-                            "price_host": price if not self._is_guest else None,
+                            "price_guest_buy": price if self._is_guest else None,
+                            "price_host_buy": price if not self._is_guest else None,
                         }
                     )
                 )

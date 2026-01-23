@@ -60,7 +60,7 @@ async def update_prices():
     to make separate calls for guest and host team token prices
     """
     strategy = UpdateNonNullFields(
-        index_elements=["market_id", "timestamp"], fields_to_update=["price_guest", "price_host"]
+        index_elements=["market_id", "timestamp"], fields_to_update=["price_guest_buy", "price_host_buy"]
     )
 
     payload_guest, payload_host, token_market_map = await construct_prices_payload()
