@@ -75,3 +75,17 @@ GAME_STATUS_NORMALIZATION_MAP = {
     "POST": GameStatus.CANCELLED,
     "SUSP": GameStatus.SUSPENDED,
 }
+
+
+class OrderStatus(StrEnum):
+    OPEN = "open"
+    PARTIAL = "partial"
+    FILLED = "filled"
+    EXPIRED = "expired"
+    CANCELLED = "cancelled"
+    UNKNOWN = "unknown"
+
+
+class OrderSide(StrEnum):
+    BUY = "BUY"
+    SELL = "SELL"
