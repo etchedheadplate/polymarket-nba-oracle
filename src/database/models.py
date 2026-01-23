@@ -9,8 +9,8 @@ class BaseModel(DeclarativeBase): ...
 
 
 class NBAGamesModel(BaseModel):
-    __tablename__ = "nba_games"
-    __table_args__ = (UniqueConstraint("event_slug", name="uq_nba_games_event_slug"),)
+    __tablename__ = "game_events"
+    __table_args__ = (UniqueConstraint("event_slug", name="uq_game_events_event_slug"),)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
@@ -35,11 +35,11 @@ class NBAGamesModel(BaseModel):
 
 
 class NBAMarketsModel(BaseModel):
-    __tablename__ = "nba_markets"
-    __table_args__ = (UniqueConstraint("event_id", "market_question", name="uq_nba_markets_event_question"),)
+    __tablename__ = "event_markets"
+    __table_args__ = (UniqueConstraint("event_id", "market_question", name="uq_event_markets_event_question"),)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    event_id: Mapped[int] = mapped_column(ForeignKey("nba_games.id", ondelete="CASCADE"), nullable=False)
+    event_id: Mapped[int] = mapped_column(ForeignKey("game_events.id", ondelete="CASCADE"), nullable=False)
 
     market_question: Mapped[str | None] = mapped_column(String(255), nullable=False)
     market_type: Mapped[str] = mapped_column(String(50), nullable=False)
@@ -61,12 +61,12 @@ class NBAMarketsModel(BaseModel):
 
 
 class NBAPricesModel(BaseModel):
-    __tablename__ = "nba_prices"
+    __tablename__ = "market_prices"
 
-    __table_args__ = (UniqueConstraint("market_id", "timestamp", name="uq_market_price_market_ts"),)
+    __table_args__ = (UniqueConstraint("market_id", "timestamp", name="uq_market_prices_market_ts"),)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    market_id: Mapped[int] = mapped_column(ForeignKey("nba_markets.id", ondelete="CASCADE"), nullable=False)
+    market_id: Mapped[int] = mapped_column(ForeignKey("event_markets.id", ondelete="CASCADE"), nullable=False)
 
     timestamp: Mapped[int] = mapped_column(Integer, nullable=False, doc="Unix timestamp (seconds, UTC)")
     price_guest_buy: Mapped[Decimal] = mapped_column(Numeric(10, 6), nullable=True)
