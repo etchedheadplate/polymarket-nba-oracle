@@ -12,7 +12,7 @@ from src.service.domain import GAME_STATUS_NORMALIZATION_MAP, GameStatus, Market
 
 
 class NBAGameSchema(BaseJsonSchema):
-    """Maps JSON fields to 'nba_games' model fields"""
+    """Maps JSON fields to 'game_events' model fields"""
 
     id: int | None = None
     event_slug: str = Field(alias="slug")
@@ -72,7 +72,7 @@ class NBAGameSchema(BaseJsonSchema):
 
 
 class NBAMarketSchema(BaseJsonSchema):
-    """Maps JSON fields to 'nba_markets' model fields"""
+    """Maps JSON fields to 'event_markets' model fields"""
 
     id: int | None = None
     event_id: int | None = None
@@ -119,7 +119,7 @@ class NBAMarketSchema(BaseJsonSchema):
 
 
 class NBAPriceSchema(BaseJsonSchema):
-    """Maps JSON fields to 'nba_prices' model fields"""
+    """Maps JSON fields to 'market_prices' model fields"""
 
     market_id: int | None = None
 
