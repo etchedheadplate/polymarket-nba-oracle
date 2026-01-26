@@ -2,8 +2,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    PRIVATE_KEY: str
-
     DB_NAME: str
     DB_HOST: str
     DB_PORT: int
