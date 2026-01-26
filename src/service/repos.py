@@ -10,8 +10,7 @@ from src.service.domain import GameStatus
 
 class NBAGamesRepo:
     async def get_latest_game_date(self, session: AsyncSession) -> date | None:
-        not_started_status = GameStatus.NOT_STARTED
-        stmt = select(func.max(NBAGamesModel.game_date)).where(NBAGamesModel.game_status != not_started_status)
+        stmt = select(func.max(NBAGamesModel.game_date)).where(NBAGamesModel.game_status != GameStatus.NOT_STARTED)
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
