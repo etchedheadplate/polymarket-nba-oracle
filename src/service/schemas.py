@@ -59,11 +59,17 @@ class NBAGameSchema(BaseJsonSchema):
         self.guest_team = None
         self.host_team = None
 
-        for team in NBATeam:
-            if team.value.lower() in guest_raw:
-                self.guest_team = team.name
-            if team.value.lower() in host_raw:
-                self.host_team = team.name
+        def match_team(raw_name: str):
+            raw_name_clean = re.sub(r"[^\w\s]", "", raw_name).strip().lower()
+            for team in NBATeam:
+                team_full = team.value.lower()
+                team_words = team_full.split()
+                if all(word in raw_name_clean for word in team_words):
+                    return team.name
+            return None
+
+        self.guest_team = match_team(guest_raw)
+        self.host_team = match_team(host_raw)
 
         if not self.guest_team or not self.host_team:
             raise ValueError(f"Failed to parse teams from title: '{self.event_title}'")
