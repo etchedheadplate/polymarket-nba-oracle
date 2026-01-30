@@ -65,18 +65,14 @@ class NBAMarketsParser(JsonParser):
 
 
 class NBAPricesParser(JsonParser):
-    def __init__(self, token_market_map: dict[int, int], is_guest: bool, same_price_timeout: int = 300) -> None:
+    def __init__(self, token_market_map: dict[int, int], is_guest: bool) -> None:
         super().__init__()
         self._token_market_map = token_market_map
         self._is_guest = is_guest
-        self._last_price = None
-        self._same_price_timeout = (
-            same_price_timeout  # window to mark timestamp candidate when game ended, but market not closed yet
-        )
 
     def _extract(self) -> None:
-        parsed = urlparse(self._current_url)
-        query = parse_qs(parsed.query)
+        parsed_url = urlparse(self._current_url)
+        query = parse_qs(parsed_url.query)
         values = query.get("market")
         self._token_id = int(values[0]) if values else None
 
@@ -92,30 +88,24 @@ class NBAPricesParser(JsonParser):
         if market_id is None:
             return
 
-        last_price = None
-        last_change_ts = None
-        candidate_stop_ts = None  # timestamp after which price doesn't change for same_price_timeout
-
         parsed: list[NBAPriceSchema] = []
-        for raw in self._raw_prices:
+        stop_index = None
+        in_extreme = False
+
+        for idx, raw in enumerate(self._raw_prices):
             try:
-                price = raw.get("p", None)
-                ts = raw.get("t", None)
+                price = raw.get("p")
+                ts = raw.get("t")
                 if price is None or ts is None:
                     continue
 
-                if last_price is None:
-                    last_price = price
-                    last_change_ts = ts
-                    continue
-
-                if price != last_price:
-                    last_price = price
-                    last_change_ts = ts
-                    candidate_stop_ts = None
+                if price < 0.01 or price > 0.99:
+                    if not in_extreme:
+                        stop_index = idx
+                        in_extreme = True
                 else:
-                    if ts - last_change_ts >= self._same_price_timeout:
-                        candidate_stop_ts = last_change_ts  # update candidate with latest price change pause window
+                    in_extreme = False
+                    stop_index = None
 
                 parsed.append(
                     NBAPriceSchema.model_validate(
@@ -130,7 +120,7 @@ class NBAPricesParser(JsonParser):
             except (KeyError, ValueError):
                 continue
 
-        if candidate_stop_ts is not None:  # remove items after latest candidate (game ended, market yet not closed)
-            parsed = [p for p in parsed if p.timestamp <= candidate_stop_ts]
+        if stop_index is not None:
+            parsed = parsed[: stop_index + 1]
 
         self.parsed_items.extend(parsed)
