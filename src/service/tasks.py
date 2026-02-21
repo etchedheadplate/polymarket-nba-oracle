@@ -7,12 +7,14 @@ from src.service.repos import NBAGamesRepo, NBAMarketsRepo
 
 async def construct_game_dates() -> tuple[date | None, date | None]:
     async with async_session_maker() as session:
-        latest = await NBAGamesRepo().get_latest_game_date(session)
-
-    if latest:
+        last_ended = await NBAGamesRepo().get_latest_ended_game_date(session)
+        first_live = await NBAGamesRepo().get_earliest_live_game_date(session)
         now = datetime.now(tz=UTC).date()
-        latest = latest if latest < now else now
-        return latest, now + timedelta(weeks=2)  # future dates for announced games
+
+    if last_ended or first_live:
+        start = min(d for d in (last_ended, first_live, now) if d is not None)
+        end = now + timedelta(weeks=2)  # future dates for announced games
+        return start, end
 
     return None, None
 

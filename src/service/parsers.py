@@ -37,7 +37,7 @@ class NBAGamesParser(JsonParser):
         for raw_game in self._raw_games:
             try:
                 game = NBAGameSchema.model_validate(raw_game, extra="ignore")
-                if self._start_date < game.game_date <= self._end_date:
+                if self._start_date <= game.game_date <= self._end_date:
                     self.parsed_items.append(game)
             except (KeyError, ValueError):
                 continue

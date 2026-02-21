@@ -9,8 +9,13 @@ from src.service.domain import GameStatus
 
 
 class NBAGamesRepo:
-    async def get_latest_game_date(self, session: AsyncSession) -> date | None:
+    async def get_latest_ended_game_date(self, session: AsyncSession) -> date | None:
         stmt = select(func.max(NBAGamesModel.game_date)).where(NBAGamesModel.game_status != GameStatus.NOT_STARTED)
+        result = await session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_earliest_live_game_date(self, session: AsyncSession) -> date | None:
+        stmt = select(func.min(NBAGamesModel.game_date)).where(NBAGamesModel.game_status == GameStatus.LIVE)
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
