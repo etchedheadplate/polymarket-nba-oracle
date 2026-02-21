@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal
 
-from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, Numeric, String, UniqueConstraint
+from sqlalchemy import Date, DateTime, Float, ForeignKey, Index, Integer, Numeric, String, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -10,7 +10,10 @@ class BaseModel(DeclarativeBase): ...
 
 class NBAGamesModel(BaseModel):
     __tablename__ = "game_events"
-    __table_args__ = (UniqueConstraint("event_slug", name="uq_game_events_event_slug"),)
+    __table_args__ = (
+        UniqueConstraint("event_slug", name="uq_game_events_event_slug"),
+        Index("idx_game_events_status_date", "game_status", "game_date"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
@@ -36,7 +39,10 @@ class NBAGamesModel(BaseModel):
 
 class NBAMarketsModel(BaseModel):
     __tablename__ = "event_markets"
-    __table_args__ = (UniqueConstraint("event_id", "market_question", name="uq_event_markets_event_question"),)
+    __table_args__ = (
+        UniqueConstraint("event_id", "market_question", name="uq_event_markets_event_question"),
+        Index("idx_event_markets_eventid_type", "event_id", "market_type"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     event_id: Mapped[int] = mapped_column(ForeignKey("game_events.id", ondelete="CASCADE"), nullable=False)
@@ -68,7 +74,10 @@ class NBAMarketsModel(BaseModel):
 class NBAPricesModel(BaseModel):
     __tablename__ = "market_prices"
 
-    __table_args__ = (UniqueConstraint("market_id", "timestamp", name="uq_market_prices_market_ts"),)
+    __table_args__ = (
+        UniqueConstraint("market_id", "timestamp", name="uq_market_prices_market_ts"),
+        Index("idx_market_prices_marketid_timestamp", "market_id", "timestamp"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     market_id: Mapped[int] = mapped_column(ForeignKey("event_markets.id", ondelete="CASCADE"), nullable=False)
