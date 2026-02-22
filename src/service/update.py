@@ -1,103 +1,53 @@
-import aiohttp
-
 from src.core.conflicts import UpdateNonNullFields
-from src.core.loaders import PydanticLoader
-from src.database.connection import async_session_maker
+from src.core.updaters import BaseUpdater
 from src.database.models import NBAGamesModel, NBAMarketsModel, NBAPricesModel
-from src.logger import logger
 from src.service.clients import NBAGamesClient, NBAMarketsClient, NBAPricesClient
 from src.service.parsers import NBAGamesParser, NBAMarketsParser, NBAPricesParser
 from src.service.tasks import construct_game_dates, construct_market_endpoints, construct_prices_payload
 
 
-async def update_games():
-    strategy = UpdateNonNullFields(
+class GamesUpdater(BaseUpdater):
+    _client_cls = NBAGamesClient
+    _parser_cls = NBAGamesParser
+    _alchemy_model = NBAGamesModel
+    _conflict_strategy = UpdateNonNullFields(
         index_elements=["event_slug"], fields_to_update=["guest_score", "host_score", "game_period", "game_status"]
     )
 
-    slug_flags = (True, False)
-    for flag in slug_flags:
-        async with aiohttp.ClientSession() as session:
-            client = NBAGamesClient(session=session, by_slug=flag)
-            files = await client.dump()
-        logger.info(f"games by_slug={flag}: {len(files)} files dumped")
 
-        if files:
-            start, end = await construct_game_dates()
-            parser = NBAGamesParser(start_date=start, end_date=end, by_slug=flag)
-            parser.ingest(json_files=files)
-            items = await parser.parse()
-            logger.info(f"games by_slug={flag}: {len(items)} items parsed")
-
-            if items:
-                async with async_session_maker() as session:
-                    loader = PydanticLoader(
-                        session=session, alchemy_model=NBAGamesModel, batch_size=500, conflict_strategy=strategy
-                    )
-                    await loader.load(data=items)
+class MarketsUpdater(BaseUpdater):
+    _client_cls = NBAMarketsClient
+    _parser_cls = NBAMarketsParser
+    _alchemy_model = NBAMarketsModel
+    _conflict_strategy = UpdateNonNullFields(
+        index_elements=["event_id", "market_question"], fields_to_update=["market_end"]
+    )
 
 
-async def update_markets():
-    strategy = UpdateNonNullFields(index_elements=["event_id", "market_question"], fields_to_update=["market_end"])
-
-    endpoints = await construct_market_endpoints()
-    if not endpoints:
-        return
-
-    async with aiohttp.ClientSession() as session:
-        client = NBAMarketsClient(session=session, endpoints=endpoints)
-        files = await client.dump()
-    logger.info(f"markets: {len(files)} files dumped")
-
-    if files:
-        parser = NBAMarketsParser()
-        parser.ingest(json_files=files)
-        items = await parser.parse()
-        logger.info(f"markets: {len(items)} items parsed")
-
-        if items:
-            async with async_session_maker() as session:
-                loader = PydanticLoader(
-                    session=session, alchemy_model=NBAMarketsModel, batch_size=1000, conflict_strategy=strategy
-                )
-                await loader.load(data=items)
-
-
-async def update_prices():
-    """
-    Market is represented by teams token id, so it is mandatory
-    to make separate calls for guest and host team token prices
-    """
-    strategy = UpdateNonNullFields(
+class PricesUpdater(BaseUpdater):
+    _client_cls = NBAPricesClient
+    _parser_cls = NBAPricesParser
+    _alchemy_model = NBAPricesModel
+    _conflict_strategy = UpdateNonNullFields(
         index_elements=["market_id", "timestamp"], fields_to_update=["price_guest_buy", "price_host_buy"]
     )
 
-    payload_guest, payload_host, token_market_map = await construct_prices_payload()
-
-    price_config = ((True, payload_guest), (False, payload_host))
-    for config in price_config:
-        flag, params = config
-
-        async with aiohttp.ClientSession() as session:
-            client = NBAPricesClient(session=session, params=params)
-            files = await client.dump()
-        logger.info(f"prices is_guest={flag}: {len(files)} files dumped")
-
-        if files:
-            parser = NBAPricesParser(token_market_map=token_market_map, is_guest=flag)
-            parser.ingest(json_files=files)
-            items = await parser.parse()
-            logger.info(f"prices is_guest={flag}: {len(items)} items parsed")
-
-            if items:
-                async with async_session_maker() as session:
-                    loader = PydanticLoader(
-                        session=session, alchemy_model=NBAPricesModel, batch_size=3000, conflict_strategy=strategy
-                    )
-                    await loader.load(data=items)
-
 
 async def update_database():
-    await update_games()
-    await update_markets()
-    await update_prices()
+    start_date, end_date = await construct_game_dates()
+    for by_slug in (True, False):
+        await GamesUpdater().run(
+            client_kwargs={"by_slug": by_slug},
+            parser_kwargs={"start_date": start_date, "end_date": end_date, "by_slug": by_slug},
+        )
+
+    endpoints = await construct_market_endpoints()
+    await MarketsUpdater().run(client_kwargs={"endpoints": endpoints}, parser_kwargs=None)
+
+    payload_guest, payload_host, token_market_map = await construct_prices_payload()
+    price_config = ((True, payload_guest), (False, payload_host))
+    for config in price_config:
+        is_guest, params = config
+        await PricesUpdater().run(
+            client_kwargs={"params": params}, parser_kwargs={"token_market_map": token_market_map, "is_guest": is_guest}
+        )
