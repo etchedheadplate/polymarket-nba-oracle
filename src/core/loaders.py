@@ -74,4 +74,4 @@ class PydanticLoader(BaseLoader):
             logger.error("Failed to commit data to '%s'", self._model.__tablename__)
             raise
 
-        logger.info("%s: %s rows inserted in %s batches", self._model.__tablename__, self._rowcount, len(batches))
+        logger.info("%s: %s rows inserted", self._model.__tablename__, self._rowcount)
