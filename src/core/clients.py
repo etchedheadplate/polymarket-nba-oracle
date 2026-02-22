@@ -102,7 +102,6 @@ class BasePolymarketOracleAPIClient(ABC):
         tasks = [self._dump_one_file(e, p, semaphore) for e in self._endpoints for p in self._params]
         await asyncio.gather(*tasks)
 
-        logger.info("Dumped %s new files from %s URLs to '%s'", self._dump_count, self._url_count, self._path)
         return self.dumped_files
 
 

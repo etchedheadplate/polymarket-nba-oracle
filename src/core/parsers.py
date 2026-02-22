@@ -46,5 +46,4 @@ class JsonParser(ABC):
                 logger.exception("Unexpected error")
                 continue
 
-        logger.info("Parsed %s items from %s files", len(self.parsed_items), len(self._ingested_data))
         return self.parsed_items

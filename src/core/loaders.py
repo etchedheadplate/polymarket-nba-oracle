@@ -53,12 +53,11 @@ class PydanticLoader(BaseLoader):
 
     async def load(self, data: list[BaseJsonSchema]) -> None:
         if not data:
-            logger.info("No data to load to '%s'", self._model.__tablename__)
+            logger.info("%s: no data to load", self._model.__tablename__)
             return
 
         records = [item.model_dump() for item in data]
         batches = list(self._chunk(records, self._batch_size))
-        logger.info("Chunked %s items into %s batches", len(records), len(batches))
 
         semaphore = asyncio.Semaphore(self._max_concurrent_batches)
 
@@ -75,4 +74,4 @@ class PydanticLoader(BaseLoader):
             logger.error("Failed to commit data to '%s'", self._model.__tablename__)
             raise
 
-        logger.info("Inserted %s rows to '%s'", self._rowcount, self._model.__tablename__)
+        logger.info("%s: %s rows inserted in %s batches", self._model.__tablename__, self._rowcount, len(batches))
