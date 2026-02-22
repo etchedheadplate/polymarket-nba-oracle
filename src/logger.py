@@ -32,19 +32,9 @@ debug_file_handler = RotatingFileHandler(
 debug_file_handler.setLevel(logging.DEBUG)
 debug_file_handler.setFormatter(formatter)
 
-error_file_handler = RotatingFileHandler(
-    LOG_DIR / "error.log",
-    maxBytes=10 * 1024 * 1024,
-    backupCount=5,
-    encoding="utf-8",
-)
-error_file_handler.setLevel(logging.ERROR)
-error_file_handler.setFormatter(formatter)
-
 if not logger.handlers:
     logger.addHandler(console_handler)
     logger.addHandler(info_file_handler)
     logger.addHandler(debug_file_handler)
-    logger.addHandler(error_file_handler)
 
 logger.info("Service started")
