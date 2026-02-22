@@ -1,12 +1,10 @@
 import asyncio
 
-from src.service.update import update_games, update_markets, update_prices
+from src.service.update import update_database
 
 
 async def main():
-    await update_games()
-    await update_markets()
-    await update_prices()
+    await update_database()
 
 
 if __name__ == "__main__":

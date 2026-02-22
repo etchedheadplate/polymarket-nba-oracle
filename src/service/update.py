@@ -95,3 +95,9 @@ async def update_prices():
                         session=session, alchemy_model=NBAPricesModel, batch_size=3000, conflict_strategy=strategy
                     )
                     await loader.load(data=items)
+
+
+async def update_database():
+    await update_games()
+    await update_markets()
+    await update_prices()
