@@ -89,3 +89,9 @@ class OrderStatus(StrEnum):
 class OrderSide(StrEnum):
     BUY = "BUY"
     SELL = "SELL"
+
+
+class ScheduleRange(StrEnum):
+    TODAY = "today"
+    WEEK = "week"
+    ALL = "all"
