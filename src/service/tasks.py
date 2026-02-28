@@ -2,6 +2,7 @@ from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 from src.database.connection import async_session_maker
+from src.service.domain import ScheduleRange
 from src.service.repos import NBAGamesRepo, NBAMarketsRepo
 
 
@@ -50,3 +51,22 @@ async def construct_prices_payload() -> tuple[list[dict[str, Any]], list[dict[st
         token_market_map[int(host_token)] = market_id
 
     return payload_guest, payload_host, token_market_map
+
+
+async def construct_game_schedule(schedule_range: ScheduleRange) -> dict[str, Any]:
+    today = date.today()
+    end_date = None
+
+    if schedule_range == ScheduleRange.TODAY:
+        end_date = today
+    elif schedule_range == ScheduleRange.WEEK:
+        end_date = today + timedelta(weeks=1)
+
+    async with async_session_maker() as session:
+        future_games = await NBAGamesRepo().get_future_games(session, end_date)
+
+    games_dict: dict[str, Any] = {}
+    for game_id, game_date, guest_team, host_team in future_games:
+        games_dict[game_id] = {"date": game_date.isoformat(), "guest": guest_team, "host": host_team}
+
+    return games_dict
