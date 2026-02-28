@@ -1,28 +1,33 @@
 import aio_pika
 from aio_pika.abc import AbstractChannel, AbstractRobustConnection
 
-from src.config import Settings
+from src.config import settings
 
 
 class RabbitMQConnection:
     def __init__(self):
-        settings = Settings()  # pyright: ignore[reportCallIssue]
-        self.host = settings.RABBITMQ_HOST
-        self.port = settings.RABBITMQ_PORT
-        self.user = settings.RABBITMQ_USER
-        self.password = settings.RABBITMQ_PASSWORD
-        self.vhost = settings.RABBITMQ_VHOST
-        self.url = f"amqp://{self.user}:{self.password}@{self.host}:{self.port}/{self.vhost}"
-        self.__connection: AbstractRobustConnection | None = None
-        self.channel: AbstractChannel | None = None
+        self.url = (
+            f"amqp://{settings.RABBITMQ_USER}:{settings.RABBITMQ_PASSWORD}"
+            f"@{settings.RABBITMQ_HOST}:{settings.RABBITMQ_PORT}/{settings.RABBITMQ_VHOST}"
+        )
+        self._connection: AbstractRobustConnection | None = None
+        self._channel: AbstractChannel | None = None
+
+    async def get_channel(self) -> AbstractChannel:
+        if self._channel and not self._channel.is_closed:
+            return self._channel
+        await self.connect()
+        if self._channel is None:
+            raise RuntimeError("Channel was not initialized after connection")
+        return self._channel
 
     async def connect(self):
-        self.__connection = await aio_pika.connect_robust(self.url)
-        self.channel = await self.__connection.channel()
-        await self.channel.set_qos(prefetch_count=1)
+        self._connection = await aio_pika.connect_robust(self.url)
+        self._channel = await self._connection.channel()
+        await self._channel.set_qos(prefetch_count=1)
 
     async def close(self):
-        if self.channel and not self.channel.is_closed:
-            await self.channel.close()
-        if self.__connection and not self.__connection.is_closed:
-            await self.__connection.close()
+        if self._channel and not self._channel.is_closed:
+            await self._channel.close()
+        if self._connection and not self._connection.is_closed:
+            await self._connection.close()
