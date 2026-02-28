@@ -51,3 +51,9 @@ async def update_database():
         await PricesUpdater().run(
             client_kwargs={"params": params}, parser_kwargs={"token_market_map": token_market_map, "is_guest": is_guest}
         )
+
+
+if __name__ == "__main__":
+    import asyncio
+
+    asyncio.run(update_database())
