@@ -23,7 +23,8 @@ class Settings(BaseSettings):
     RABBITMQ_VHOST: str
 
     EXCHANGE_NAME: str
-    ROUTING_KEY_QUERY_DB: str
+    RK_ORACLE_QUERY: str
+    RK_ORACLE_RESPONSE: str
 
     model_config = SettingsConfigDict(env_file=".env")
 
