@@ -1,5 +1,6 @@
 from collections.abc import Sequence
 from datetime import date, datetime
+from typing import Any
 
 from sqlalchemy import Row, exists, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,6 +19,20 @@ class NBAGamesRepo:
         stmt = select(func.min(NBAGamesModel.game_date)).where(NBAGamesModel.game_status == GameStatus.LIVE)
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def get_future_games(self, session: AsyncSession, end_date: date | None) -> Sequence[Any]:
+        today = datetime.now().date()
+        stmt = (
+            select(NBAGamesModel.id, NBAGamesModel.game_date, NBAGamesModel.guest_team, NBAGamesModel.host_team)
+            .where(NBAGamesModel.game_status == GameStatus.NOT_STARTED)
+            .where(NBAGamesModel.game_date >= today)
+        )
+
+        if end_date:
+            stmt = stmt.where(NBAGamesModel.game_date <= end_date)
+
+        result = await session.execute(stmt)
+        return result.all()
 
     async def get_event_ids_without_markets(self, session: AsyncSession) -> Sequence[int]:
         today = datetime.now().date()
