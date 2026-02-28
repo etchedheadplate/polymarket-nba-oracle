@@ -1,7 +1,9 @@
+aio-pika==9.6.1
 aiofiles==25.1.0
 aiohappyeyeballs==2.6.1
 aiohttp==3.13.3
 aiolimiter==1.2.1
+aiormq==6.9.3
 aiosignal==1.4.0
 alembic==1.17.2
 amqp==5.3.1
@@ -53,6 +55,7 @@ mypy_extensions==1.1.0
 nodeenv==1.10.0
 numpy==2.4.0
 packaging==25.0
+pamqp==3.3.0
 pandas==2.3.3
 parsimonious==0.10.0
 pathspec==0.12.1
