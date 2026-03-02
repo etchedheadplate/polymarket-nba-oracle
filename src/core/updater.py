@@ -6,7 +6,7 @@ import aiohttp
 from src.core.clients import BasePolymarketOracleAPIClient
 from src.core.conflicts import UpdateNonNullFields
 from src.core.loaders import PydanticLoader
-from src.core.parsers import JsonParser
+from src.core.parser import JsonParser
 from src.database.connection import async_session_maker
 from src.database.models import BaseModel
 

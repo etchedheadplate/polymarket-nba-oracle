@@ -7,7 +7,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.conflicts import ConflictStrategy
-from src.core.parsers import BaseJsonSchema
+from src.core.parser import BaseJsonSchema
 from src.database.models import BaseModel
 from src.logger import logger
 
