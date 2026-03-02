@@ -23,8 +23,10 @@ class Settings(BaseSettings):
     RABBITMQ_VHOST: str
 
     EXCHANGE_NAME: str
-    RK_ORACLE_QUERY: str
-    RK_ORACLE_RESPONSE: str
+    QUEUE_TGBOT: str
+    QUEUE_ORACLE: str
+    RK_REQUEST: str
+    RK_RESPONSE: str
 
     model_config = SettingsConfigDict(env_file=".env")
 
