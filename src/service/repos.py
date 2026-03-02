@@ -6,7 +6,7 @@ from sqlalchemy import Row, exists, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.models import NBAGamesModel, NBAMarketsModel
-from src.service.domain import GameStatus
+from src.service.domain.games import GameStatus
 
 
 class NBAGamesRepo:

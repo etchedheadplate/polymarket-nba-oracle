@@ -1,14 +1,11 @@
-import contextlib
-import json
 import re
-from datetime import date, datetime
-from decimal import Decimal
+from datetime import date
 from typing import Any
 
 from pydantic import Field, model_validator
 
-from src.core.parsers import BaseJsonSchema
-from src.service.domain import GAME_STATUS_NORMALIZATION_MAP, GameStatus, MarketType, NBATeam
+from src.core.parser import BaseJsonSchema
+from src.service.domain.games import GAME_STATUS_NORMALIZATION_MAP, GameStatus, NBATeam
 
 
 class NBAGameSchema(BaseJsonSchema):
@@ -75,60 +72,3 @@ class NBAGameSchema(BaseJsonSchema):
             raise ValueError(f"Failed to parse teams from title: '{self.event_title}'")
 
         return self
-
-
-class NBAMarketSchema(BaseJsonSchema):
-    """Maps JSON fields to 'event_markets' model fields"""
-
-    id: int | None = None
-    event_id: int | None = None
-
-    market_question: str = Field(alias="question")
-    market_type: MarketType = Field(default=MarketType.moneyline, alias="sportsMarketType")
-    market_start: datetime = Field(alias="gameStartTime")
-    market_end: datetime | None = Field(default=None, alias="closedTime")
-
-    order_min_price: Decimal = Field(alias="orderPriceMinTickSize")
-    order_min_size: float = Field(alias="orderMinSize")
-
-    token_id_guest: str
-    token_id_host: str
-
-    @model_validator(mode="before")
-    def parse_dates(cls, values: dict[str, Any]):
-        date_field_names = ["gameStartTime", "closedTime"]
-        for field in date_field_names:
-            val = values.get(field)
-            if isinstance(val, str):
-                if val.endswith("+00"):
-                    val = val.replace("+00", "+00:00")
-                try:
-                    values[field] = datetime.fromisoformat(val)
-                except ValueError:
-                    contextlib.suppress(ValueError)
-
-        return values
-
-    @model_validator(mode="before")
-    def parse_tokens(cls, values: Any):
-        raw_tokens = values.get("clobTokenIds")
-        if raw_tokens:
-            try:
-                tokens = json.loads(raw_tokens)
-                if len(tokens) == 2:
-                    values["token_id_guest"] = tokens[0]
-                    values["token_id_host"] = tokens[1]
-            except json.JSONDecodeError:
-                values["token_id_guest"] = None
-                values["token_id_host"] = None
-        return values
-
-
-class NBAPriceSchema(BaseJsonSchema):
-    """Maps JSON fields to 'market_prices' model fields"""
-
-    market_id: int | None = None
-
-    timestamp: int = Field(alias="timestamp")
-    price_guest_buy: Decimal | None = Field(default=None, alias="price_guest_buy")
-    price_host_buy: Decimal | None = Field(default=None, alias="price_host_buy")
