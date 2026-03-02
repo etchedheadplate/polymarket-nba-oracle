@@ -21,4 +21,5 @@ class RabbitMQProducer:
             routing_key=routing_key,
         )
 
-        logger.info(f"OUT: exchange={exchange}, routing_key={routing_key}, message={message}")
+        logger.info(f"OUT: queue={exchange_name}.{routing_key}")
+        logger.debug(f"OUT: queue={exchange_name}.{routing_key}, message={message}")
