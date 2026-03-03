@@ -2,13 +2,13 @@ from collections.abc import Callable, Coroutine
 from typing import Any
 
 from src.workers.schemas import Request, Response
-from src.workers.tasks import construct_game_schedule
+from src.workers.tasks import construct_game_schedule, run_database_update
 
 Task = Callable[..., Coroutine[Any, Any, dict[str, Any]]]
 
 
 class Handler:
-    _task_map: dict[str, Task] = {"schedule": construct_game_schedule}
+    _task_map: dict[str, Task] = {"schedule": construct_game_schedule, "update": run_database_update}
 
     def _resolve(self, name: str) -> Task:
         return self._task_map[name]
