@@ -55,7 +55,7 @@ class PydanticLoader(BaseLoader):
         rowcount = 0
 
         if not data:
-            logger.info("%s: no data to load", tablename)
+            logger.info("table %s: no data to load", tablename)
             return rowcount
 
         records = [item.model_dump() for item in data]
@@ -73,8 +73,8 @@ class PydanticLoader(BaseLoader):
             rowcount = sum(results)
         except Exception:
             await self._session.rollback()
-            logger.error("Failed to commit data to '%s'", tablename)
+            logger.error("table $s: failed to commit data", tablename)
             raise
 
-        logger.info("%s: %s rows inserted", tablename, rowcount)
+        logger.info("table %s: %s rows inserted", tablename, rowcount)
         return rowcount

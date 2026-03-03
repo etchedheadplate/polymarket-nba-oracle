@@ -62,9 +62,16 @@ class BasePolymarketOracleAPIClient(ABC):
                     response.raise_for_status()
                     return await response.json()
             except (TimeoutError, aiohttp.ClientError) as e:
-                logger.debug("Request failed (%s), attempt %s/%s: %s", url, attempt + 1, retries, e)
+                logger.debug(
+                    "client %s: request failed (%s), attempt %s/%s: %s",
+                    self.__class__.__name__,
+                    url,
+                    attempt + 1,
+                    retries,
+                    e,
+                )
                 await asyncio.sleep(2**attempt)
-        logger.debug("Failed to fetch data after %s attempts: %s", retries, url)
+        logger.debug("client %s: failed to fetch data after %s attempts: %s", self.__class__.__name__, retries, url)
         return None
 
     async def _save_file(self, path: Path, data: Any) -> Path | None:
@@ -76,7 +83,7 @@ class BasePolymarketOracleAPIClient(ABC):
                 await f.write(json.dumps(data, indent=4))
             return path
         except OSError as e:
-            logger.error("Failed to save file %s: %s", path, e)
+            logger.error("client $s: failed to save file %s: %s", self.__class__.__name__, path, e)
             return None
 
     async def _dump_one_file(self, endpoint: str, params: dict[str, Any], semaphore: asyncio.Semaphore):

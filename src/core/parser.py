@@ -40,10 +40,10 @@ class JsonParser(ABC):
                     self._extract()
                     self._validate()
             except ValidationError as e:
-                logger.debug("Validation skipped: %s", e)
+                logger.debug("parser %s: validation skipped: %s", self.__class__.__name__, e)
                 continue
             except Exception:
-                logger.exception("Unexpected error")
+                logger.exception("parser %s: unexpected error", self.__class__.__name__)
                 continue
 
         return self.parsed_items

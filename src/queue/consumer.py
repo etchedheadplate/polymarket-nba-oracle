@@ -25,12 +25,12 @@ class RabbitMQConsumer:
         queue = await channel.declare_queue(queue_name, durable=True)
         await queue.bind(exchange, routing_key)
 
-        logger.info(f"SUB: queue={queue_name}")
+        logger.info(f"queue {queue_name}: subscribed")
 
         async with queue.iterator() as queue_iter:
             async for message in queue_iter:
                 async with message.process():
                     payload = json.loads(message.body)
-                    logger.info(f" IN: queue={queue_name}")
-                    logger.debug(f" IN: queue={queue_name}, message={payload}")
+                    logger.info(f"queue {queue_name}: message received")
+                    logger.debug(f"queue {queue_name}: message received: {payload}")
                     await callback(payload)
