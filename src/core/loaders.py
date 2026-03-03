@@ -25,7 +25,7 @@ class BaseLoader(ABC):
         if self._conflict_strategy:
             stmt = self._conflict_strategy.apply(stmt)
         result = await self._session.execute(stmt)
-        return result.rowcount or 0  # type: ignore
+        return result.rowcount or 0  # pyright: ignore
 
     @staticmethod
     def _chunk(iterable: list[dict[str, Any]], size: int):
