@@ -20,6 +20,9 @@ async def construct_game_schedule(payload: dict[str, Any]) -> dict[str, Any]:
 
     games_dict: dict[str, Any] = {}
     for game_id, game_date, guest_team, host_team in future_games:
-        games_dict[game_id] = {"date": game_date.isoformat(), "guest": guest_team, "host": host_team}
+        date_key = game_date.isoformat()
+        if date_key not in games_dict:
+            games_dict[date_key] = {}
+        games_dict[date_key][game_id] = {"guest": guest_team, "host": host_team}
 
     return games_dict
