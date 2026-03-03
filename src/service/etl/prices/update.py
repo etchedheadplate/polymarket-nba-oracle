@@ -42,14 +42,16 @@ async def construct_prices_payload() -> tuple[list[dict[str, Any]], list[dict[st
     return payload_guest, payload_host, token_market_map
 
 
-async def update_prices():
+async def update_prices() -> int:
     payload_guest, payload_host, token_market_map = await construct_prices_payload()
     price_config = ((True, payload_guest), (False, payload_host))
-    for config in price_config:
-        is_guest, params = config
-        await PricesUpdater().run(
-            client_kwargs={"params": params}, parser_kwargs={"token_market_map": token_market_map, "is_guest": is_guest}
+    rowcount = 0
+    for is_guest, params in price_config:
+        rowcount += await PricesUpdater().run(
+            client_kwargs={"params": params},
+            parser_kwargs={"token_market_map": token_market_map, "is_guest": is_guest},
         )
+    return rowcount
 
 
 if __name__ == "__main__":

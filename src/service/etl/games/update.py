@@ -32,13 +32,15 @@ async def construct_game_dates() -> tuple[date | None, date | None]:
     return None, None
 
 
-async def update_games():
+async def update_games() -> int:
     start_date, end_date = await construct_game_dates()
+    rowcount = 0
     for by_slug in (True, False):
-        await GamesUpdater().run(
+        rowcount += await GamesUpdater().run(
             client_kwargs={"by_slug": by_slug},
             parser_kwargs={"start_date": start_date, "end_date": end_date, "by_slug": by_slug},
         )
+    return rowcount
 
 
 if __name__ == "__main__":

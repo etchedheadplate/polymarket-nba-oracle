@@ -28,7 +28,7 @@ class BaseUpdater:
         parser.ingest(json_files=files)
         return await parser.parse()
 
-    async def _load(self, items: list[Any]):
+    async def _load(self, items: list[Any]) -> int:
         async with async_session_maker() as session:
             loader = PydanticLoader(
                 session=session,
@@ -36,12 +36,16 @@ class BaseUpdater:
                 batch_size=self._batch_size,
                 conflict_strategy=self._conflict_strategy,
             )
-            await loader.load(data=items)
+            return await loader.load(data=items)
 
-    async def run(self, client_kwargs: dict[str, Any] | None = None, parser_kwargs: dict[str, Any] | None = None):
+    async def run(
+        self, client_kwargs: dict[str, Any] | None = None, parser_kwargs: dict[str, Any] | None = None
+    ) -> int:
         client_kwargs = client_kwargs or {}
         parser_kwargs = parser_kwargs or {}
 
         files = await self._fetch(**client_kwargs)
         items = await self._parse(files, **parser_kwargs)
-        await self._load(items)
+        rowcount = await self._load(items)
+
+        return rowcount

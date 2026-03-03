@@ -25,9 +25,10 @@ async def construct_market_endpoints() -> list[str]:
     return endpoints
 
 
-async def update_markets():
+async def update_markets() -> int:
     endpoints = await construct_market_endpoints()
-    await MarketsUpdater().run(client_kwargs={"endpoints": endpoints}, parser_kwargs=None)
+    rowcount = await MarketsUpdater().run(client_kwargs={"endpoints": endpoints}, parser_kwargs=None)
+    return rowcount
 
 
 if __name__ == "__main__":
