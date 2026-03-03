@@ -20,7 +20,7 @@ class NBAGamesRepo:
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_future_games(self, session: AsyncSession, end_date: date | None) -> Sequence[Any]:
+    async def get_future_games(self, session: AsyncSession, end_date: date | None = None) -> Sequence[Any]:
         today = datetime.now().date()
         stmt = (
             select(NBAGamesModel.id, NBAGamesModel.game_date, NBAGamesModel.guest_team, NBAGamesModel.host_team)
@@ -59,6 +59,11 @@ class NBAGamesRepo:
 
 
 class NBAMarketsRepo:
+    async def get_markets_count(self, session: AsyncSession) -> int:
+        stmt = select(func.count(NBAMarketsModel.market_start))
+        result = await session.execute(stmt)
+        return result.scalar_one()
+
     async def get_markets_without_prices(self, session: AsyncSession) -> Sequence[Row[tuple[int, int, int, str, str]]]:
         stmt = select(
             NBAMarketsModel.id,
