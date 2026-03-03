@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     EXCHANGE_NAME: str
     QUEUE_TGBOT: str
     QUEUE_ORACLE: str
+    QUEUE_REPORT: str
     RK_REQUEST: str
     RK_RESPONSE: str
 
