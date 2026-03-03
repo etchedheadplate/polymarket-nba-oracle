@@ -29,7 +29,7 @@ async def construct_game_schedule(payload: dict[str, Any]) -> dict[str, Any]:
     return games_dict
 
 
-async def run_database_update() -> dict[str, Any]:
+async def run_database_update(payload: None = None) -> dict[str, Any]:
     async with async_session_maker() as session:
         future_games = await NBAGamesRepo().get_future_games(session)
         markets_before_update = await NBAMarketsRepo().get_markets_count(session)
