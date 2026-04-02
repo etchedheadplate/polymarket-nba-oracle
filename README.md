@@ -4,7 +4,7 @@ The service can be adapted for processing game events from other sports leagues 
 
 ## Schema
 
-![schema](https://github.com/etchedheadplate/polymarket-nba-oracle/media/schema.png)
+![schema](media/schema.png)
 
 ## Usage
 
