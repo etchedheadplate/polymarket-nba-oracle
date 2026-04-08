@@ -1,4 +1,6 @@
-This service collects Polymarket NBA-related event data (games, markets, and price history) via API, processes it, and stores it in a database. The service can be adapted for processing game events from other sports leagues (e.g. WNBA, NHL, NFL).
+This repository is part of a system for technical analysis of a Polymarket NBA data. You can learn more [here](https://sonyn.dev/blog/2026-04-07-a-random-walk-down-diamond-district/).
+
+Oracle service collects Polymarket NBA-related event data (games, markets, and price history) via API, processes it, and stores it in a database. The service can be adapted for processing game events from other sports leagues (e.g. WNBA, NHL, NFL).
 
 ## Schema
 
