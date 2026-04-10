@@ -1,20 +1,18 @@
 import asyncio
+import argparse
 
 from src.service.etl.games import update_games
 from src.service.etl.markets import update_markets
 from src.service.etl.prices import update_prices
 
-from typing import cast
-import argparse
-
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--delete-dumps", action="store_true")
+    parser.add_argument("--keep-dumps", action="store_true")
     return parser.parse_args()
 
 
-async def update_database(delete_dumps: bool = False) -> dict[str, int]:
+async def update_database(keep_dumps: bool = False) -> dict[str, int | None]:
     results = await asyncio.gather(
         update_games(),
         update_markets(),
@@ -22,13 +20,11 @@ async def update_database(delete_dumps: bool = False) -> dict[str, int]:
         return_exceptions=True,
     )
 
-    errors = [r for r in results if isinstance(r, BaseException)]
-    if errors:
-        raise Exception(f"Update failed with errors: {errors}")
+    counts: dict[str, int | None] = {}
+    for name, result in zip(("games", "markets", "prices"), results):
+        counts[name] = None if isinstance(result, BaseException) else result
 
-    games, markets, prices = cast(tuple[int, int, int], tuple(results))
-
-    if delete_dumps:
+    if not keep_dumps:
         import shutil
         from src.config import settings
 
@@ -39,13 +35,9 @@ async def update_database(delete_dumps: bool = False) -> dict[str, int]:
             else:
                 shutil.rmtree(path)
 
-    return {
-        "games": games,
-        "markets": markets,
-        "prices": prices,
-    }
+    return counts
 
 
 if __name__ == "__main__":
     args = parse_args()
-    asyncio.run(update_database(delete_dumps=args.delete_dumps))
+    asyncio.run(update_database(keep_dumps=args.keep_dumps))

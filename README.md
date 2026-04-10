@@ -19,5 +19,5 @@ python -m main
 (Optional) Run manual database update
 
 ```bash
-python -m src.service.etl.update
+python -m src.service.etl.update [--keep-dumps]
 ```
