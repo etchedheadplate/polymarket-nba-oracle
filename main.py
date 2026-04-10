@@ -20,7 +20,7 @@ async def main():
         response = await Handler().process(message)
         await producer.send_message(
             exchange_name=settings.EXCHANGE_NAME,
-            routing_key=f"{settings.QUEUE_TGBOT}.{settings.RK_RESPONSE}",
+            routing_key=f"{settings.QUEUE_TG_BOT}.{settings.RK_RESPONSE}",
             message=response.model_dump(),
         )
 

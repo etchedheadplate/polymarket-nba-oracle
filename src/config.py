@@ -4,30 +4,30 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    SERVICE_NAME: str
-    LOG_DIR: Path
+    SERVICE_NAME: str = "nba-oracle"
+    LOG_DIR: Path = Path("logs")
 
-    DB_NAME: str
-    DB_HOST: str
-    DB_PORT: int
-    DB_USER: str
-    DB_PASS: str
+    DB_NAME: str = "polymarket_nba_orcale"
+    DB_HOST: str = "localhost"
+    DB_PORT: int = 5432
+    DB_USER: str = "postgres"
+    DB_PASS: str = "postgres"
 
-    REDIS_BROKER: str
-    REDIS_BACKEND: str
+    REDIS_BROKER: str = "redis://localhost:6379/0"
+    REDIS_BACKEND: str = "redis://localhost:6379/1"
 
-    RABBITMQ_HOST: str
-    RABBITMQ_PORT: int
-    RABBITMQ_USER: str
-    RABBITMQ_PASSWORD: str
-    RABBITMQ_VHOST: str
+    RABBITMQ_HOST: str = "localhost"
+    RABBITMQ_PORT: int = 5672
+    RABBITMQ_USER: str = "guest"
+    RABBITMQ_PASSWORD: str = "guest"
+    RABBITMQ_VHOST: str = "/"
 
-    EXCHANGE_NAME: str
-    QUEUE_TGBOT: str
-    QUEUE_ORACLE: str
-    QUEUE_REPORT: str
-    RK_REQUEST: str
-    RK_RESPONSE: str
+    EXCHANGE_NAME: str = "polymarket.nba"
+    QUEUE_TG_BOT: str = "tg_bot"
+    QUEUE_ORACLE: str = "oracle"
+    QUEUE_REPORT: str = "reort"
+    RK_REQUEST: str = "request"
+    RK_RESPONSE: str = "response"
 
     model_config = SettingsConfigDict(env_file=".env")
 
