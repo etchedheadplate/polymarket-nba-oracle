@@ -1,7 +1,10 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pathlib import Path
 
 
 class Settings(BaseSettings):
+    DUMPS_DIR: Path = Path("dumps")
+
     DB_NAME: str = "polymarket_nba_orcale"
     DB_HOST: str = "localhost"
     DB_PORT: int = 5432
