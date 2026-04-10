@@ -11,10 +11,12 @@ from aiolimiter import AsyncLimiter
 
 from src.logger import logger
 
+from src.config import settings
+
 
 class BasePolymarketOracleAPIClient(ABC):
     _base: str
-    _dirname = "dumps"
+    _dirname = settings.DUMPS_DIR
     _subdirname: str
     _file_prefix: str
     _file_rewrite: bool

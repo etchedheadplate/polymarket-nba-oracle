@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     DB_USER: str = "postgres"
     DB_PASS: str = "postgres"
 
+    DUMPS_DIR: Path = Path("dumps")
+
     REDIS_BROKER: str = "redis://localhost:6379/0"
     REDIS_BACKEND: str = "redis://localhost:6379/1"
 
