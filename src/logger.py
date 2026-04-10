@@ -1,9 +1,9 @@
 import logging
 from logging.handlers import RotatingFileHandler
 
-from src.config import settings
+from pathlib import Path
 
-LOG_DIR = settings.LOG_DIR
+LOG_DIR = Path("logs")
 LOG_DIR.mkdir(exist_ok=True)
 
 formatter = logging.Formatter("[%(levelname)s] %(asctime)s - %(name)s - %(message)s")
@@ -17,7 +17,7 @@ if not logger.hasHandlers():
     console_handler.setFormatter(formatter)
 
     info_file_handler = RotatingFileHandler(
-        LOG_DIR / f"{settings.SERVICE_NAME}_service.log",
+        LOG_DIR / "service.log",
         maxBytes=10 * 1024 * 1024,
         backupCount=5,
         encoding="utf-8",
@@ -26,7 +26,7 @@ if not logger.hasHandlers():
     info_file_handler.setFormatter(formatter)
 
     debug_file_handler = RotatingFileHandler(
-        LOG_DIR / f"{settings.SERVICE_NAME}_debug.log",
+        LOG_DIR / "debug.log",
         maxBytes=10 * 1024 * 1024,
         backupCount=5,
         encoding="utf-8",

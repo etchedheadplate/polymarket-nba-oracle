@@ -4,9 +4,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    SERVICE_NAME: str = "nba-oracle"
-    LOG_DIR: Path = Path("logs")
-
     DB_NAME: str = "polymarket_nba_orcale"
     DB_HOST: str = "localhost"
     DB_PORT: int = 5432
