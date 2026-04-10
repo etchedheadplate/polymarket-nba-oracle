@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -9,11 +7,6 @@ class Settings(BaseSettings):
     DB_PORT: int = 5432
     DB_USER: str = "postgres"
     DB_PASS: str = "postgres"
-
-    DUMPS_DIR: Path = Path("dumps")
-
-    REDIS_BROKER: str = "redis://localhost:6379/0"
-    REDIS_BACKEND: str = "redis://localhost:6379/1"
 
     RABBITMQ_HOST: str = "localhost"
     RABBITMQ_PORT: int = 5672
