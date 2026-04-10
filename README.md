@@ -8,6 +8,12 @@ Oracle service collects Polymarket NBA-related event data (games, markets, and p
 
 ## Usage
 
+### Enviroment
+
+Create a `.env` file in the root of the repository using the `.env.example` template.
+
+### Running
+
 The system is built around a RabbitMQ-based task processing model. A consumer subscribes to task queues, executes incoming tasks, and publishes results back to response queues.
 
 Start RabbitMQ consumer:
