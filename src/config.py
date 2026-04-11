@@ -5,7 +5,7 @@ from pathlib import Path
 class Settings(BaseSettings):
     DUMPS_DIR: Path = Path("dumps")
 
-    DB_NAME: str = "polymarket_nba_orcale"
+    DB_NAME: str = "polymarket_nba_oracle"
     DB_HOST: str = "localhost"
     DB_PORT: int = 5432
     DB_USER: str = "postgres"
@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     EXCHANGE_NAME: str = "polymarket.nba"
     QUEUE_TG_BOT: str = "tg_bot"
     QUEUE_ORACLE: str = "oracle"
-    QUEUE_REPORT: str = "reort"
+    QUEUE_REPORT: str = "report"
     RK_REQUEST: str = "request"
     RK_RESPONSE: str = "response"
 
