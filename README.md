@@ -8,7 +8,7 @@ Oracle service collects Polymarket NBA-related event data (games, markets, and p
 
 ## Usage
 
-### Enviroment
+### Environment
 
 Create a `.env` file in the root of the repository using the `.env.example` template.
 
