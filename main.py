@@ -6,9 +6,12 @@ from typing import Any
 from src.config import settings
 from src.queue import RabbitMQConnection, RabbitMQConsumer, RabbitMQProducer
 from src.workers import Handler, Request
+from src.service.etl.update import update_database
 
 
 async def main():
+    await update_database(keep_dumps=False)
+
     connection = RabbitMQConnection()
     consumer = RabbitMQConsumer(connection)
     producer = RabbitMQProducer(connection)
