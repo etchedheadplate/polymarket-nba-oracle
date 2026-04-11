@@ -72,7 +72,7 @@ dependencies = [
     "pre-commit==4.5.1",
     "prompt-toolkit==3.0.52",
     "propcache==0.4.1",
-    "psycopg2==2.9.11",
+    "psycopg2-binary==2.9.11",
     "py-builder-signing-sdk==0.0.2",
     "py-clob-client==0.34.1",
     "py-order-utils==0.3.2",
