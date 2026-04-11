@@ -4,7 +4,7 @@ Oracle service collects Polymarket NBA-related event data (games, markets, and p
 
 ## Schema
 
-![schema](media/schema.png)
+![schema](demo/schema.png)
 
 ## Usage
 
