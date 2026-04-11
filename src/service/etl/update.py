@@ -13,16 +13,16 @@ def parse_args():
 
 
 async def update_database(keep_dumps: bool = False) -> dict[str, int | None]:
-    results = await asyncio.gather(
-        update_games(),
-        update_markets(),
-        update_prices(),
-        return_exceptions=True,
-    )
-
-    counts: dict[str, int | None] = {}
-    for name, result in zip(("games", "markets", "prices"), results):
-        counts[name] = None if isinstance(result, BaseException) else result
+    results: dict[str, int | None] = {}
+    for name, coro in (
+        ("games", update_games()),
+        ("markets", update_markets()),
+        ("prices", update_prices()),
+    ):
+        try:
+            results[name] = await coro
+        except BaseException:
+            results[name] = None
 
     if not keep_dumps:
         import shutil
@@ -35,7 +35,7 @@ async def update_database(keep_dumps: bool = False) -> dict[str, int | None]:
             else:
                 shutil.rmtree(path)
 
-    return counts
+    return results
 
 
 if __name__ == "__main__":
